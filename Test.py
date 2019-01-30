@@ -90,7 +90,6 @@ class MyParser(object):
 		###Loop over the images
 		for (i, (imagePath, boundingBoxes)) in enumerate(images):
     			###Load the image 
-    			print ("[x] %d initial bounding boxes" % (len(boundingBoxes)))
 			image = cv2.imread(imagePath)
 			orig = image.copy()
 	 
@@ -107,10 +106,7 @@ class MyParser(object):
 			for (startX, startY, endX, endY) in pick:
 				cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
 	    
-			###Save the images
-			cv2.imwrite("images/Original_" + str(i) + ".jpg", orig)
-			cv2.imwrite("images/After_NMS_" + str(i) + ".jpg", image)
-	    
+
 		t2 = time.time()
 		print('cost {} ms to process {} images'.format((t2 - t1)*1000, len(images)))
 
