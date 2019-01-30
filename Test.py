@@ -72,51 +72,42 @@ class MyParser(object):
 		loc2 = np.where( res2 >= threshold)
 		
 		arr=[[]]
+		
 		###Draw rectangles around each instance in the image
 		for pt in zip(*loc[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + wr, pt[1] + hr), (0,0,255), 1)
 			arr.append([pt[0],pt[1],pt[0] + wr,pt[1] + hr])
-			
 		
-		arr=arr.reverse()
-		arr=arr.pop()
-		arr=arr.reverse()
+		arr=arr.pop(0)
 		arr=np.array(arr)
 		print(arr)
+		
 		images = [("input.png",arr)]
 		iter_num= 1
-		images = images*iter_num  # change the iterations to compare the two nms method
-
+		images = images*iter_num
 		t1 = time.time()
     
-		# loop over the images
+		###Loop over the images
 		for (i, (imagePath, boundingBoxes)) in enumerate(images):
-    			# load the image and clone it
-    			# print ("[x] %d initial bounding boxes" % (len(boundingBoxes)))
+    			###Load the image 
+    			print ("[x] %d initial bounding boxes" % (len(boundingBoxes)))
 			image = cv2.imread(imagePath)
 			orig = image.copy()
 	 
-			# loop over the bounding boxes for each image and draw them
+			###Loop over the bounding boxes for each image and draw them
 			for (startX, startY, endX, endY) in boundingBoxes:
 				cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 0, 255), 2)
 	    
-			# perform non-maximum suppression on the bounding boxes
-			# pick = non_max_suppression_slow(boundingBoxes, 0.3)
-	    
+			###Non-maximum suppression on the bounding boxes
 			pick = non_max_suppression_fast(boundingBoxes, probs=None, overlapThresh=0.3)
 
-			# print ("[x] after applying non-maximum, %d bounding boxes" % (len(pick)))   
+			print ("[x] after applying non-maximum, %d bounding boxes" % (len(pick)))   
 	    
-			# loop over the picked bounding boxes and draw them
+			###Loop over the picked bounding boxes and draw them
 			for (startX, startY, endX, endY) in pick:
 				cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
-	 
-			# display the images
-			# cv2.imshow("Original" + i, orig)
-			# cv2.imshow("After NMS" + i, image)
-			# cv2.waitKey(0)
 	    
-			# save the images
+			###Save the images
 			cv2.imwrite("images/Original_" + str(i) + ".jpg", orig)
 			cv2.imwrite("images/After_NMS_" + str(i) + ".jpg", image)
 	    
@@ -125,9 +116,12 @@ class MyParser(object):
 
 		for pt in zip(*loc1[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + wl, pt[1] + hl), (0,255,0), 1)
+			
 		for pt in zip(*loc2[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + ws, pt[1] + hs), (255,0,0), 1)
-		cv2.imwrite('arrow_extracted.jpg',image)		
+			
+		cv2.imwrite('arrow_extracted.jpg',image)
+		
 	def handle_line(self, line):
 		self.records.append(line)		 
 if __name__ == '__main__':
