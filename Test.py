@@ -9,12 +9,15 @@ from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.layout import LAParams
 from pdfminer.converter import TextConverter
 import cv2
+import time
+from nms import non_max_suppression_slow, non_max_suppression_fast
 import numpy as np
 import argparse
 from PIL import Image
 import pytesseract
 import os
 from pdf2image import convert_from_path
+import pprint
 try:
 	from StringIO import StringIO
 except ImportError:
@@ -22,7 +25,7 @@ except ImportError:
 
 class MyParser(object):
 	def __init__(self, pdf):
-		parser = PDFParser(open(pdf, 'rb'))
+		parser = PDFParser(open(pdf, 'rb'))###read the pdf and read the text
 		document = PDFDocument(parser)
 		if not document.is_extractable:
 			raise PDFTextExtractionNotAllowed
@@ -36,34 +39,90 @@ class MyParser(object):
 			interpreter.process_page(page)
 		self.records = []
 		lines = retstr.getvalue().splitlines()
-		f= open('OCR_miner.txt','w')
+		f= open('OCR_miner.txt','w')###save the text in a text file
 		for i in lines:
 			i=i.replace(" ","")
 			print(i)
 			f.write(i)
 			f.write(" ")
 		f.close()
-		pages = convert_from_path(pdf, 500)
+		pages = convert_from_path(pdf, 500)###Convert pdf to png
 		for page in pages:
 			page.save('input.jpg', 'JPEG')
-		image = cv2.imread('input.jpg')
+		image = cv2.imread('input.jpg')###read the image
 		img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+		
+		
+		###read the templates
 		right = cv2.imread('Images/arrow_right.jpg',0)
 		wr, hr = right.shape[::-1]
 		left=cv2.imread('Images/arrow_left.jpg',0)
 		wl, hl = left.shape[::-1]
 		slf=cv2.imread('Images/self_arrow.jpg',0)
 		ws, hs = slf.shape[::-1]
+		
+		###Template Matching
 		res = cv2.matchTemplate(img_gray,right,cv2.TM_CCOEFF_NORMED)
 		res1= cv2.matchTemplate(img_gray,left,cv2.TM_CCOEFF_NORMED)
 		res2= cv2.matchTemplate(img_gray,slf,cv2.TM_CCOEFF_NORMED)
-		threshold = 0.8
+		threshold = 0.85
+		
 		loc = np.where(res >= threshold) 
 		loc1=np.where(res1 >= threshold)
 		loc2 = np.where( res2 >= threshold)
+		
+		arr=[[]]
+		###Draw rectangles around each instance in the image
 		for pt in zip(*loc[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + wr, pt[1] + hr), (0,0,255), 1)
-			#print(pt)
+			arr.append([pt[0],pt[1],pt[0] + wr,pt[1] + hr])
+			
+		
+		arr=arr.reverse()
+		arr=arr.pop()
+		arr=arr.reverse()
+		arr=np.array(arr)
+		print(arr)
+		images = [("input.png",arr)]
+		iter_num= 1
+		images = images*iter_num  # change the iterations to compare the two nms method
+
+		t1 = time.time()
+    
+		# loop over the images
+		for (i, (imagePath, boundingBoxes)) in enumerate(images):
+    			# load the image and clone it
+    			# print ("[x] %d initial bounding boxes" % (len(boundingBoxes)))
+			image = cv2.imread(imagePath)
+			orig = image.copy()
+	 
+			# loop over the bounding boxes for each image and draw them
+			for (startX, startY, endX, endY) in boundingBoxes:
+				cv2.rectangle(orig, (startX, startY), (endX, endY), (0, 0, 255), 2)
+	    
+			# perform non-maximum suppression on the bounding boxes
+			# pick = non_max_suppression_slow(boundingBoxes, 0.3)
+	    
+			pick = non_max_suppression_fast(boundingBoxes, probs=None, overlapThresh=0.3)
+
+			# print ("[x] after applying non-maximum, %d bounding boxes" % (len(pick)))   
+	    
+			# loop over the picked bounding boxes and draw them
+			for (startX, startY, endX, endY) in pick:
+				cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
+	 
+			# display the images
+			# cv2.imshow("Original" + i, orig)
+			# cv2.imshow("After NMS" + i, image)
+			# cv2.waitKey(0)
+	    
+			# save the images
+			cv2.imwrite("images/Original_" + str(i) + ".jpg", orig)
+			cv2.imwrite("images/After_NMS_" + str(i) + ".jpg", image)
+	    
+		t2 = time.time()
+		print('cost {} ms to process {} images'.format((t2 - t1)*1000, len(images)))
+
 		for pt in zip(*loc1[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + wl, pt[1] + hl), (0,255,0), 1)
 		for pt in zip(*loc2[::-1]):
