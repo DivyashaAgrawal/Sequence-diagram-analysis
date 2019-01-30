@@ -106,10 +106,6 @@ class MyParser(object):
 			for (startX, startY, endX, endY) in pick:
 				cv2.rectangle(image, (startX, startY), (endX, endY), (0, 255, 0), 2)
 	    
-
-		t2 = time.time()
-		print('cost {} ms to process {} images'.format((t2 - t1)*1000, len(images)))
-
 		for pt in zip(*loc1[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + wl, pt[1] + hl), (0,255,0), 1)
 			
