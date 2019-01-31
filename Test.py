@@ -51,14 +51,17 @@ class MyParser(object):
 			
 		for i in lines:
 			words.append(i)
-		words.pop(0)
-		#print(words)
-		method=[]
+		#words.pop(0)
+		
+		
 		matching = [s for s in words if "(" in s]
-		#print(matching)
-		#print(len(matching))
-		#print("\n\n\n")
-			
+		methods=[]
+		for i in range(len(words)):
+			if(words[i]!=matching[0] and words[i]!=''):
+				methods.append(words[i])
+			elif(words[i]==matching[0]):
+				break
+		
 		###Convert pdf to png
 		 
 		pages = convert_from_path(pdf, 500)
@@ -94,6 +97,7 @@ class MyParser(object):
 		loc2 = np.where( res2 >= threshold)
 		
 		arr=[[]]
+
 		###Draw rectangles around each instance in the image
 		for pt in zip(*loc[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + wr, pt[1] + hr), (0,0,255), 1)
@@ -120,11 +124,10 @@ class MyParser(object):
 			###Non-maximum suppression on the bounding boxes
 			pick = non_max_suppression_fast(Boxes, probs=None, overlapThresh=0.3)
 
-			#print ("[%d bounding boxes" % (len(pick)))   
 	    
 			###Loop over the picked bounding box and append them to array.
 			for (startX, startY, endX, endY) in pick:
-				d[startY]='right'
+				d[startY]='right to left'
 
 
 		arr1=[[]]
@@ -153,23 +156,29 @@ class MyParser(object):
 	    
 			###Non-maximum suppression on the bounding boxes
 			pick1 = non_max_suppression_fast(Boxes, probs=None, overlapThresh=0.3)
-
-			#print ("%d bounding boxes" % (len(pick1)))   
+  
 	    
 			###Loop over the picked bounding boxes and draw them
 			for (startX, startY, endX, endY) in pick1:
-				d[startY]='left'
+				d[startY]='left to right'
 		del d['key']
 		od = collections.OrderedDict(sorted(d.items()))
 		dir=[]
 		for k, v in od.items(): 
 			dir.append(v)
 		
+		
 		###save the text in a text file
 		f= open('EA_miner.txt','w')
 		for i in range(len(matching)):
-			f.write(str(i+1) + ') '+ matching[i] + ' <----> ' + dir[i])
+			f.write(str(i+1) + ') '+ matching[i] + ' is going from ' + dir[i])
 			f.write("\n")
+		f.write('\n\n')
+		f.write('The methods are:')
+		f.write('\n')
+		for m in range(len(methods)):
+			f.write(str(m+1) + ') ' + methods[m])
+			f.write('\n\n')
 		f.close()
 
 		for pt in zip(*loc2[::-1]):
