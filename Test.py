@@ -168,7 +168,7 @@ class MyParser(object):
 		###save the text in a text file
 		f= open('EA_miner.txt','w')
 		for i in range(len(matching)):
-			f.write(matching[i] + ' <----> ' + dir[i])
+			f.write(str(i+1) + ') '+ matching[i] + ' <----> ' + dir[i])
 			f.write("\n")
 		f.close()
 
