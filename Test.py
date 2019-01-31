@@ -164,18 +164,13 @@ class MyParser(object):
 		dir=[]
 		for k, v in od.items(): 
 			dir.append(v)
-		#dir.pop(0)
-		#print(dir)
-		print("\n\n\n")
-		final=zip(matching,dir)
-		print(final)
-		#print(len(final))
-		"""###save the text in a text file
+		
+		###save the text in a text file
 		f= open('EA_miner.txt','w')
-		for i in (matching,dir):
-			f.write(matching[i], "----", dir[i])
+		for i in range(len(matching)):
+			f.write(matching[i] + ' <----> ' + dir[i])
 			f.write("\n")
-		f.close()"""
+		f.close()
 
 		for pt in zip(*loc2[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + ws, pt[1] + hs), (255,0,0), 1)
