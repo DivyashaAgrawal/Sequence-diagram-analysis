@@ -51,9 +51,8 @@ class MyParser(object):
 			
 		for i in lines:
 			words.append(i)
-		#words.pop(0)
 		
-		
+		print(words)
 		matching = [s for s in words if "(" in s]
 		methods=[]
 		for i in range(len(words)):
@@ -170,6 +169,8 @@ class MyParser(object):
 		
 		###save the text in a text file
 		f= open('EA_miner.txt','w')
+		f.write('The functions are: ')
+		f.write('\n\n')
 		for i in range(len(matching)):
 			f.write(str(i+1) + ') '+ matching[i] + ' is going from ' + dir[i])
 			f.write("\n")
