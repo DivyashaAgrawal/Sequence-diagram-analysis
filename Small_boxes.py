@@ -64,7 +64,11 @@ for (i, (imagePath, Boxes)) in enumerate(images):
 	pick1 = non_max_suppression_fast(Boxes,probs=None,  overlapThresh=0.3)
   
 print(pick1)
-		
-	
+pick[:] = pick[::-1]
+
+boxes=[]
+
+for(startx,starty,endx,endy)in pick:
+	boxes.append(starty)
 
 cv2.imwrite('res.png',img_rgb)
