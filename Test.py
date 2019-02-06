@@ -293,24 +293,63 @@ class MyParser:
 		d = {}
 		for k in orient:
     			d[k] = tuple(d[k] for d in ds)
+		#correction of the orientation
+		l=list()
 		final=[]
+		d1=dict()
+		ll=list()
 		for k,v in d.items():
-			final.append(v)
-
-		pp.pprint(final)
+			ll.append(k)
+		ll.sort()
+		for i in range(len(ll)):
+			p=ll[i]
+			d1[i]=d[p]
+			
+		
+		for k,v in d1.items():
+			l=list(d1[k])
+			if(l[1][1]==[]):
+				l[1][1]=-1
+			if(l[0]=='left to right'):
+				p=l[1][0]
+				q=l[1][1]
+				if(p>q and q!=-1):
+					t=l[1][0]
+					l[1][0]=l[1][1]
+					l[1][1]=t
+			elif(l[0]=='right to left'):
+				p=l[1][0]
+				q=l[1][1]
+				if(p<q and q!=-1):
+					t=l[1][0]
+					l[1][0]=l[1][1]
+					l[1][1]=t
+			final.append(l[1])
+		
+		#Making a list of components for arrows
+		
+		for i in range(len(final)):
+			
+			final[i][0]=comp[final[i][0]-1]
+			if(final[i][1]==-1):
+				final[i][1]='NULL'
+			else:
+				final[i][1]=comp[final[i][1]-1]
+		
 		#Save the text in a text file
 		f= open('EA_miner.txt','w')
-		f.write('The functions are: ')
-		f.write('\n\n')
-		for i in range(len(matching)):
-			f.write(str(i+1) + ') '+ matching[i] + ' is going from ' + dir[i])
-			f.write("\n")
-		f.write('\n\n')
 		f.write('The Components are:')
 		f.write('\n')
 		for m in range(len(comp)):
 			f.write(str(m+1) + ') ' + comp[m])
 			f.write('\n\n')
+		f.write('The functions are: ')
+		f.write('\n\n')
+		for i in range(len(matching)):
+			f.write(str(i+1) + ') '+ matching[i] + ' is going from ' + final[i][0] + ' to ' + final[i][1])
+			f.write("\n")
+		f.write('\n\n')
+		
 		f.close()
 		
 		"""#for self arrow
