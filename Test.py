@@ -53,19 +53,18 @@ class MyParser(object):
 			words.append(i)
 		
 		print(words)
-		matching = [s for s in words if "(" in s]
+		"""matching = [s for s in words if "(" in s]
 		methods=[]
 		for i in range(len(words)):
 			if(words[i]!=matching[0] and words[i]!=''):
 				methods.append(words[i])
 			elif(words[i]==matching[0]):
 				break
-		
+		"""
 		###Convert pdf to png
 		 
-		pages = convert_from_path(pdf, 500)
-		for page in pages:
-			page.save('input.png', 'PNG')
+		page = convert_from_path(pdf, 500)
+		page.save('input.png', 'PNG')
 
 		###read the image
 
@@ -167,7 +166,7 @@ class MyParser(object):
 			dir.append(v)
 		
 		
-		###save the text in a text file
+		"""###save the text in a text file
 		f= open('EA_miner.txt','w')
 		f.write('The functions are: ')
 		f.write('\n\n')
@@ -180,7 +179,7 @@ class MyParser(object):
 		for m in range(len(methods)):
 			f.write(str(m+1) + ') ' + methods[m])
 			f.write('\n\n')
-		f.close()
+		f.close()"""
 
 		for pt in zip(*loc2[::-1]):
 			cv2.rectangle(image, pt, (pt[0] + ws, pt[1] + hs), (255,0,0), 1)
