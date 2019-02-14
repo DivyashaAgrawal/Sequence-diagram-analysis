@@ -58,19 +58,31 @@ class MyParser:
 		for i in lines:
 			words.append(i)
 			
+		
 		#Filter the spaces
 		for i in range(len(words)):
-			
+			if((i-1)>-1 and (i+1)!=len(words) and words[i]=='' and (words[i+1].startswith("("))):
+				words2.append(words[i-1]+ "" + words[i+1] )
+				
+
 			if(((i+1)%2)!=0 and (i+1)!=len(words) and words[i+1]!=''):
 				words2.append(words[i] + " " + words[i+1])
 				i=i+2
 			
-			elif(i%2==0 and words[i]!=''):
+			elif(i%2==0 and words[i]!='' ):
 				words2.append(words[i])
-				
-				
+		for i in range(len(words2)):
+			if(words2[i].startswith("(") or words2[i].startswith(" (")):
+				words2[i]=".."
+		
+		#For the alternatives
+		alt=[t for t in words2 if "alt" in t]
+		#For the interactions
+		int=[t for t in words2 if "int" in t]
 		#For the functions
 		matching = [s for s in words2 if "(" in s]
+
+	
 		#For components
 		comp=[]
 		for i in range(len(words2)):
