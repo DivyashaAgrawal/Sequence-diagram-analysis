@@ -226,7 +226,22 @@ class MyParser:
 				final[i][1]='NULL'
 			else:
 				final[i][1]=comp[final[i][1]-1]
+				
+		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
 		
+		
+		#Insert document in collection
+		c=[]
+		start='('
+		end=')'
+		for i in matching:
+			ip=(i.split(start))[1].split(end)[0]
+			op=
+			method={"method_name" : i , "input" : ip,"output" : "none" }
+			c.append(method)
+		
+		contentDict={"_id" : 1, "IPPC": {"EA_analytics" : c }}
+		doc=InsertIntoCollection(collobj,contentDict)
 		#Save the text in a text file
 		f= open('EA_miner.txt','w')
 		f.write('The Components are:')
