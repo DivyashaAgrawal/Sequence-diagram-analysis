@@ -236,8 +236,8 @@ class MyParser:
 		end=')'
 		for i in matching:
 			ip=(i.split(start))[1].split(end)[0]
-			op=
-			method={"method_name" : i , "input" : ip,"output" : "none" }
+			name=i.split('(')[0]
+			method={"method_name" : name , "input" : ip,"output" : "none" }
 			c.append(method)
 		
 		contentDict={"_id" : 1, "IPPC": {"EA_analytics" : c }}
