@@ -101,19 +101,19 @@ class MyParser:
 		orient={'key':'value'}#dictionary for orientation of the arrows
 
 		#read the right arrow
-		right = cv2.imread('Images/arrow_right.png',0)#right arrow
+		right = "right_arrow"#right arrow
 		pick = extract(image,right,0.85)
 		
 		#read the left arrow
-		left = cv2.imread('Images/arrow_left.png',0)#left arrow
+		left = "left_arrow"#left arrow
 		pick1 = extract(image,left,0.85)
 
 		#read the boxes
-		template = cv2.imread('Images/smallbox.png',0)#boxes
+		template = "small_boxes"#boxes
 		pick3 = extract(image,template,0.85)
 		
 		#read the components
-		template2 = cv2.imread('Images/box.png',0)#components
+		template2 = "components"#components
 		pick2 = extract(image,template2,0.9)
 		
 		for (startX, startY, endX, endY) in pick:#for right
