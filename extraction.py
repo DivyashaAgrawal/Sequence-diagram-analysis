@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from nms import non_max_suppression_slow, non_max_suppression_fast
 
-def extract(image,string,threshold):
+def extract(image,string):
 	
 	image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	#Read the templates
