@@ -102,19 +102,19 @@ class MyParser:
 
 		#read the right arrow
 		right = "right_arrow"#right arrow
-		pick = extract(image,right,0.85)
+		pick = extract(image,right)
 		
 		#read the left arrow
 		left = "left_arrow"#left arrow
-		pick1 = extract(image,left,0.85)
+		pick1 = extract(image,left)
 
 		#read the boxes
 		template = "small_boxes"#boxes
-		pick3 = extract(image,template,0.85)
+		pick3 = extract(image,template)
 		
 		#read the components
 		template2 = "components"#components
-		pick2 = extract(image,template2,0.9)
+		pick2 = extract(image,template2)
 		
 		for (startX, startY, endX, endY) in pick:#for right
 				orient[startY]='left to right'
