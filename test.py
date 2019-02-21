@@ -108,19 +108,33 @@ class MyParser:
 		left = "left_arrow"#left arrow
 		pick1 = extract(image,left)
 
+		#read the self arrow
+		slf= "self_arrow"
+		pick4 = extract(image,slf)
 		#read the boxes
 		template = "small_boxes"#boxes
 		pick3 = extract(image,template)
-		
 		#read the components
 		template2 = "components"#components
 		pick2 = extract(image,template2)
-		
+		pick5=[]
+		for i in range(len(pick1)):
+			f=1
+			for j in range(len(pick4)):
+				if (pick1[i][0]>=pick4[j][0] and pick1[i][2]<=pick4[j][2]):
+					f=0
+					break
+			if(f == 1):
+				pick5.append(pick1[i])
+
 		for (startX, startY, endX, endY) in pick:#for right
 				orient[startY]='left to right'
 		
-		for (startX, startY, endX, endY) in pick1:
+		for (startX, startY, endX, endY) in pick5:
 				orient[startY]='right to left'
+
+		for (startX, startY, endX, endY) in pick4:
+				orient[startY]='self'
 		
 		#Reversing the lists to get correct index
 		pick3[:] = pick3[::-1]
@@ -130,9 +144,10 @@ class MyParser:
 		del orient['key']
 		
 		od = collections.OrderedDict(sorted(orient.items()))
-		dir=[]
+		d2=[]
 		for k, v in od.items(): 
-			dir.append(v)
+			d2.append(v)
+
 
 		#List of pairs of boxes(starting and ending points)
 		i=1
