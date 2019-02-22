@@ -2,8 +2,10 @@
 
 
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
+from pdfminer.converter import PDFPageDetailedAggregator
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfinterp import PDFPageInterpreter
+from collections import defaultdict,OrderedDict
 from pdfminer.converter import TextConverter
 from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfparser import PDFParser
@@ -11,18 +13,19 @@ from pdf2image import convert_from_path
 from matplotlib import pyplot as plt
 from pdfminer.pdfpage import PDFPage
 from pdfminer.layout import LAParams
-from collections import defaultdict
 from extraction import extract
+from pprint import pprint
 from PIL import Image
 from mongo import *
 import numpy as np
 import collections
 import argparse
-import pprint
 import time
 import sys
 import cv2
 import os
+
+
 
 try:
 	from StringIO import StringIO
@@ -38,7 +41,7 @@ class MyParser:
 		document = PDFDocument(parser)
 		if not document.is_extractable:
 			raise PDFTextExtractionNotAllowed
-		rsrcmgr = PDFResourceManager()
+		rsrcmgr = PDFResourceManager() 
 		retstr = StringIO()
 		laparams = LAParams()
 		codec = 'utf-8'
@@ -49,16 +52,79 @@ class MyParser:
 		self.records = []
 		lines = retstr.getvalue().splitlines()
 	
-		pp = pprint.PrettyPrinter(indent=4)#For better indentation
+		device1 = PDFPageDetailedAggregator(rsrcmgr, laparams=laparams)
+		interpreter1 = PDFPageInterpreter(rsrcmgr, device1)
+
+		for page in PDFPage.create_pages(document):
+    			interpreter1.process_page(page)
+    		# receive the LTPage object for this page
+    			device1.get_result()
+
+		words1=device1.rows
+		forcomponents=[]
+
+		f=0
+		for y in range(len(words1)):
+			q=[]
+			if ((y+1)!=len(words1) and words1[y][1]==words1[y+1][1] and words1[y][3]==words1[y+1][3]):
+				p=[words1[y+1][4]]
+				q.append(words1[y][4])
+				forcomponents.append(q)
+		forcomponents.append(p)
+
+		#functions=[s for s in words1 if "(" in s]
+		functions=[]
+		for i in range(len(words1)): 
+			if "(" in words1[i][4]:
+				q=[words1[i][4]]
+				functions.append(q)
+
+		
+		values=set(map(lambda x:x[0],words1))
+		comments = [[y[4] for y in words1 if y[0]==x] for x in values]#will have same x1 that is words1[0]
+
+		forcomments=[]
+
+		for i in range(len(comments)):
+			f=0
+			for j in range(len(forcomponents)):
+				if(comments[i]!=forcomponents[j]):
+					f=1
+				else:
+					f=0
+					break
+			if(f==1):
+				forcomments.append(comments[i])
+
+		forforcomments=[]
+		for i in forcomments:
+			f=0
+			for j in functions:
+				if(i!=j):
+					f=1
+				else:
+					f=0
+					break
+			if(f==1):
+				forforcomments.append(i)
+
+		"""pprint(forcomponents)
+		print('\n')
+		pprint(functions)
+		print('\n')
+		pprint(forforcomments)"""
+
+
+
 		words=[]#for the whole text
+		
 		words2=[]#for filtered text
 		for i in lines:
 			i=i.replace(" ","")
 			
 		for i in lines:
 			words.append(i)
-			
-		
+	
 		#Filter the spaces
 		for i in range(len(words)):
 			if((i-1)>-1 and (i+1)!=len(words) and words[i]=='' and (words[i+1].startswith("("))):
@@ -73,7 +139,7 @@ class MyParser:
 				words2.append(words[i])
 		for i in range(len(words2)):
 			if(words2[i].startswith("(") or words2[i].startswith(" (")):
-				words2[i]=".."
+				words2[i]="."
 		
 		#For the alternatives
 		alt=[t for t in words2 if "alt" in t]
@@ -91,7 +157,7 @@ class MyParser:
 			else:
 				break
 		
-		
+		#pprint(words)
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages:
@@ -101,21 +167,19 @@ class MyParser:
 		orient={'key':'value'}#dictionary for orientation of the arrows
 
 		#read the right arrow
-		right = "right_arrow"#right arrow
+		right = "sample_images/right_arrow"#right arrow
 		pick = extract(image,right)
-		
 		#read the left arrow
-		left = "left_arrow"#left arrow
+		left = "sample_images/left_arrow"#left arrow
 		pick1 = extract(image,left)
-
 		#read the self arrow
-		slf= "self_arrow"
+		slf= "sample_images/self_arrow"
 		pick4 = extract(image,slf)
 		#read the boxes
-		template = "small_boxes"#boxes
+		template = "sample_images/small_boxes"#boxes
 		pick3 = extract(image,template)
 		#read the components
-		template2 = "components"#components
+		template2 = "sample_images/components"#components
 		pick2 = extract(image,template2)
 		pick5=[]
 		for i in range(len(pick1)):
@@ -148,7 +212,6 @@ class MyParser:
 		for k, v in od.items(): 
 			d2.append(v)
 
-
 		#List of pairs of boxes(starting and ending points)
 		i=1
 		boxes=[]
@@ -165,19 +228,17 @@ class MyParser:
 			single=[[pick3[i-1][0],pick3[i-1][1],pick3[i-1][2],pick3[i-1][3]],[]]
 			boxes.append(single)
 		
-
 		#Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
 		real=[]
 		for i in pick3:
 			real.append(tuple(i))
-
 		#Create dictionary of boxes and components(indexwise)
 		components=dict()
 		for j in range(len(real)):
 			for(i,(startX, startY, endX, endY)) in enumerate(pick2):
 				if(real[j][0]>startX and real[j][0]<endX):
 					components[real[j]]=i
-					break
+					break# resize the image according to the scale, and keep track
 		#Create the dictionary of components and arrows 
 		for i in range(len(boxes)):
 			r=tuple(boxes[i][0])
@@ -195,6 +256,7 @@ class MyParser:
 		
 		#Map the orientatoin and components
 		ds = [orient, cor_box]
+		#pprint(ds)
 		d = {}
 		for k in orient:
     			d[k] = tuple(d[k] for d in ds)
@@ -241,7 +303,7 @@ class MyParser:
 				final[i][1]='NULL'
 			else:
 				final[i][1]=comp[final[i][1]-1]
-				
+		
 		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
 		
 		
@@ -249,13 +311,15 @@ class MyParser:
 		c=[]
 		start='('
 		end=')'
+		count=1
 		for i in matching:
 			ip=(i.split(start))[1].split(end)[0]
 			name=i.split('(')[0]
-			method={"method_name" : name , "input" : ip,"output" : "none" }
+			method={"method_name ": name, "param" :{"Sequence": count, "input" : ip, "output" : "none" }}
 			c.append(method)
+			count+=1
 		
-		contentDict={"_id" : 1, "IPPC": {"EA_analytics" : c }}
+		contentDict={"IPPC": {"EA_analytics" : c }}
 		doc=InsertIntoCollection(collobj,contentDict)
 		#Save the text in a text file
 		f= open('EA_miner.txt','w')
@@ -264,7 +328,7 @@ class MyParser:
 		for m in range(len(comp)):
 			f.write(str(m+1) + ') ' + comp[m])
 			f.write('\n\n')
-		f.write('The functions are: ')
+		f.write('The methods are: ')
 		f.write('\n\n')
 		for i in range(len(matching)):
 			f.write(str(i+1) + ') '+ matching[i] + ' is going from ' + final[i][0] + ' to ' + final[i][1])
