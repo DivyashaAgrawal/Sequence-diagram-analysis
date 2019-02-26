@@ -25,8 +25,6 @@ import sys
 import cv2
 import os
 
-
-
 try:
 	from StringIO import StringIO
 except ImportError:
@@ -320,7 +318,7 @@ class MyParser:
 			count+=1
 		
 		contentDict={"IPPC": {"EA_analytics" : c }}
-		doc=InsertIntoCollection(collobj,contentDict)
+		doc = InsertIntoCollection(collobj,contentDict)
 		#Save the text in a text file
 		f= open('EA_miner.txt','w')
 		f.write('The Components are:')
