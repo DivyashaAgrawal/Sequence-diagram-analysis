@@ -2,7 +2,7 @@
 
 
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
-from pdfminer.converter import PDFPageDetailedAggregator
+from pdfminer.converter import PDFPageDetailed
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfinterp import PDFPageInterpreter
 from collections import defaultdict,OrderedDict
@@ -35,51 +35,56 @@ class MyParser:
 	def __init__(self, pdf):
 		
 		###read the pdf and read the text
-		parser = PDFParser(open(pdf, 'rb'))
-		document = PDFDocument(parser)
+		parser = PDFParser(open(pdf, 'rb')) # Parse
+		document = PDFDocument(parser) # Get document
 		if not document.is_extractable:
-			raise PDFTextExtractionNotAllowed
-		rsrcmgr = PDFResourceManager() 
+			raise PDFTextExtractionNotAllowed # if document is protected
+		rsrcmgr = PDFResourceManager()  # get all the objects from the pdf
 		retstr = StringIO()
 		laparams = LAParams()
 		codec = 'utf-8'
-		device = TextConverter(rsrcmgr, retstr,codec = codec,laparams = laparams)
+		device = TextConverter(rsrcmgr, retstr,codec = codec,laparams = laparams) # Original text converter which coverts pdf into text by reading small chuncks and merging the ones close to each other
 		interpreter = PDFPageInterpreter(rsrcmgr, device)
 		for page in PDFPage.create_pages(document):
 			interpreter.process_page(page)
-		self.records = []
+		self.records = [] # The text list
 		lines = retstr.getvalue().splitlines()
 	
-		device1 = PDFPageDetailedAggregator(rsrcmgr, laparams=laparams)
+		# Added functionality in converter.py in PDFMiner to get coordnates of bounding boxes bounding the texts.
+		device1 = PDFPageDetailed(rsrcmgr, laparams=laparams)
 		interpreter1 = PDFPageInterpreter(rsrcmgr, device1)
 
-		for page in PDFPage.create_pages(document):
+		for page in PDFPage.create_pages(document): 
     			interpreter1.process_page(page)
-    		# receive the LTPage object for this page
-    			device1.get_result()
+    			device1.get_result()# receive the LTPage object for this page
 
-		words1=device1.rows
+		txt_coordinates=device1.rows #list of coordinates and texts
+		
+
+		# Extracting components
 		forcomponents=[]
 
 		f=0
-		for y in range(len(words1)):
+		for y in range(len(txt_coordinates)):
 			q=[]
-			if ((y+1)!=len(words1) and words1[y][1]==words1[y+1][1] and words1[y][3]==words1[y+1][3]):
-				p=[words1[y+1][4]]
-				q.append(words1[y][4])
+			if ((y+1)!=len(txt_coordinates) and txt_coordinates[y][1]==txt_coordinates[y+1][1] and txt_coordinates[y][3]==txt_coordinates[y+1][3]):
+				p=[txt_coordinates[y+1][4]]
+				q.append(txt_coordinates[y][4])
 				forcomponents.append(q)
 		forcomponents.append(p)
-
-		#functions=[s for s in words1 if "(" in s]
-		functions=[]
-		for i in range(len(words1)): 
-			if "(" in words1[i][4]:
-				q=[words1[i][4]]
-				functions.append(q)
-
 		
-		values=set(map(lambda x:x[0],words1))
-		comments = [[y[4] for y in words1 if y[0]==x] for x in values]#will have same x1 that is words1[0]
+
+		#Extracting functions
+		#functions=[s for s in txt_coordinates if "(" in s]
+		functions=[]
+		for i in range(len(txt_coordinates)): 
+			if "(" in txt_coordinates[i][4]:
+				q=[txt_coordinates[i][4]]
+				functions.append(q)
+		
+		#Extracting the comments (Same x-coordinates of comments)		
+		values=set(map(lambda x:x[0],txt_coordinates))
+		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]#will have same x1 that is txt_coordinates[0]
 
 		forcomments=[]
 
@@ -106,13 +111,11 @@ class MyParser:
 			if(f==1):
 				forforcomments.append(i)
 
-		"""pprint(forcomponents)
-		print('\n')
-		pprint(functions)
-		print('\n')
-		pprint(forforcomments)"""
-
-
+		##pprint(forcomponents)
+		##print('\n')
+		##pprint(functions)
+		##print('\n')
+		##pprint(forforcomments)
 
 		words=[]#for the whole text
 		
@@ -142,7 +145,7 @@ class MyParser:
 		#For the alternatives
 		alt=[t for t in words2 if "alt" in t]
 		#For the interactions
-		int=[t for t in words2 if "int" in t]
+		inter=[t for t in words2 if "int" in t]
 		#For the functions
 		matching = [s for s in words2 if "(" in s]
 
@@ -154,8 +157,11 @@ class MyParser:
 				comp.append(words2[i])
 			else:
 				break
-		
-		#pprint(words)
+		##print("\n")
+		##pprint(matching)
+		##pprint(alt)
+		##pprint(comp)
+
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages:
@@ -197,7 +203,7 @@ class MyParser:
 
 		for (startX, startY, endX, endY) in pick4:
 				orient[startY]='self'
-		
+		pprint(pick)
 		#Reversing the lists to get correct index
 		pick3[:] = pick3[::-1]
 		pick2[:] = pick2[::-1]
@@ -301,11 +307,13 @@ class MyParser:
 				final[i][1]='NULL'
 			else:
 				final[i][1]=comp[final[i][1]-1]
+
+		#Find euclidean distance between
+		arrow_coordinates=[]
 		
-		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
-		
-		
+
 		#Insert document in collection
+		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
 		c=[]
 		start='('
 		end=')'
