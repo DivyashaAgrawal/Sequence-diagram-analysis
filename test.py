@@ -65,8 +65,10 @@ class MyParser:
 		forcomponents=[]
 
 		f=0
+		p=[]
 		for y in range(len(txt_coordinates)):
 			q=[]
+			
 			if ((y+1)!=len(txt_coordinates) and txt_coordinates[y][1]==txt_coordinates[y+1][1] and txt_coordinates[y][3]==txt_coordinates[y+1][3]):
 				p=[txt_coordinates[y+1][4]]
 				q.append(txt_coordinates[y][4])
@@ -203,7 +205,7 @@ class MyParser:
 
 		for (startX, startY, endX, endY) in pick4:
 				orient[startY]='self'
-		pprint(pick)
+
 		#Reversing the lists to get correct index
 		pick3[:] = pick3[::-1]
 		pick2[:] = pick2[::-1]
@@ -352,3 +354,4 @@ class MyParser:
 if __name__ == '__main__':
 	p = MyParser(sys.argv[1])
 	print ('\n'.join(p.records))
+
