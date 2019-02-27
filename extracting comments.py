@@ -4,7 +4,7 @@ from pdfminer.pdfdocument import PDFDocument
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
-from pdfminer.converter import PDFPageDetailedAggregator
+from pdfminer.converter import PDFPageDetailed
 from collections import OrderedDict
 
 fp = open('11.pdf', 'rb')
@@ -12,7 +12,7 @@ parser = PDFParser(fp)
 doc = PDFDocument(parser)
 rsrcmgr = PDFResourceManager()
 laparams = LAParams()
-device = PDFPageDetailedAggregator(rsrcmgr, laparams=laparams)
+device = PDFPageDetailed(rsrcmgr, laparams=laparams)
 interpreter = PDFPageInterpreter(rsrcmgr, device)
 
 for page in PDFPage.create_pages(doc):
@@ -22,7 +22,7 @@ for page in PDFPage.create_pages(doc):
 words=device.rows
 
 values = set(map(lambda x:x[0], words))
-forcomments = [[y[4] for y in words if y[0]==x] for x in values]#will have same x1 that is words[0]
+forcomments = [[y[4] for y in words if y[0]==x] for x in values] # will have same x1 that is words[0]
 
 forcomponents=[]
 f=0
@@ -32,13 +32,5 @@ for y in range(len(words)):
 		forcomponents.append(words[y][4])
 		forcomponents.append(p)
 			
-	
 forcomponents = list(OrderedDict.fromkeys(forcomponents))		
-#forcomments = list(OrderedDict.fromkeys(forcomments))	
-#pprint(words)
 
-
-print('\n\n')
-pprint(forcomments)
-print('\n\n')
-pprint(forcomponents)
