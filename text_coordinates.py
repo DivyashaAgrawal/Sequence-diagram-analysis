@@ -7,7 +7,7 @@ from .layout import LAParams
 from .layout import LTAnno
 
 ##Inherited function from PDFAggregator
-class PDFPageDetailedAggregator(PDFPageAggregator):
+class PDFPageDetailed(PDFPageAggregator):
     def __init__(self, rsrcmgr, pageno=1, laparams=None):
         PDFPageAggregator.__init__(self, rsrcmgr, pageno=pageno, laparams=laparams)
         self.rows = []
