@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+
+#Import the system libraries
+
 import os
 import sys
 import collections
@@ -8,6 +11,10 @@ try:
 except ImportError:
 	from io import StringIO
 
+<<<<<<< HEAD
+=======
+#Import downloaded libraries
+>>>>>>> fdbaf4ba313a9176bc6e8cea4938433b74038b07
 import cv2
 import numpy as np
 from pprint import pprint
@@ -18,13 +25,14 @@ from pdf2image import convert_from_path
 from pdfminer.pdfparser import PDFParser
 from pdfminer.converter import TextConverter
 from pdfminer.pdfdocument import PDFDocument
-from pdfminer.converter import PDFPageDetailed
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 
-from extraction import extract
+#Import created modules
 from mongo import *
+from extraction import extract
+from text_coordinates import PDFPageDetailed
 
 class MyParser:
 
@@ -98,7 +106,7 @@ class MyParser:
 		
 		#will have same x1 that is txt_coordinates[0]
 		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]
-		
+		pprint(txt_coordinates)
 		#for the whole text
 		words=[]
 		#for filtered text
