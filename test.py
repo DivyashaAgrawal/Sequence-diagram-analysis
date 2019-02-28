@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 
+
+#Import the system libraries
+
 import os
 import sys
-import cv2
 import collections
-import numpy as np
 try:
 	from StringIO import StringIO
 except ImportError:
 	from io import StringIO
 
-from extraction import extract
-from mongo import *
-
-from PIL import Image
+#Import downloaded libraries
+import cv2
+import numpy as np
 from pprint import pprint
 from matplotlib import pyplot as plt
 from pdfminer.pdfpage import PDFPage
@@ -22,10 +22,14 @@ from pdf2image import convert_from_path
 from pdfminer.pdfparser import PDFParser
 from pdfminer.converter import TextConverter
 from pdfminer.pdfdocument import PDFDocument
-from pdfminer.converter import PDFPageDetailed
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
+
+#Import created modules
+from mongo import *
+from extraction import extract
+from text_coordinates import PDFPageDetailed
 
 class MyParser:
 
@@ -97,32 +101,7 @@ class MyParser:
 		
 		#will have same x1 that is txt_coordinates[0]
 		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]
-		"""
-		forcomments=[]
-
-		for i in range(len(comments)):
-			f=0
-			for j in range(len(components)):
-				if(comments[i]!=components[j]):
-					f=1
-				else:
-					f=0
-					break
-			if(f==1):
-				forcomments.append(comments[i])
-
-		forforcomments=[]
-		for i in forcomments:
-			f=0
-			for j in functions:
-				if(i!=j):
-					f=1
-				else:
-					f=0
-					break
-			if(f==1):
-				forforcomments.append(i)"""
-	
+		pprint(txt_coordinates)
 		#for the whole text
 		words=[]
 		#for filtered text
