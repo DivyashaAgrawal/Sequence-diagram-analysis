@@ -33,4 +33,29 @@ for y in range(len(words)):
 		forcomponents.append(p)
 			
 forcomponents = list(OrderedDict.fromkeys(forcomponents))		
+"""
+		forcomments=[]
 
+		for i in range(len(comments)):
+			f=0
+			for j in range(len(components)):
+				if(comments[i]!=components[j]):
+					f=1
+				else:
+					f=0
+					break
+			if(f==1):
+				forcomments.append(comments[i])
+
+		forforcomments=[]
+		for i in forcomments:
+			f=0
+			for j in functions:
+				if(i!=j):
+					f=1
+				else:
+					f=0
+					break
+			if(f==1):
+				forforcomments.append(i)"""
+	

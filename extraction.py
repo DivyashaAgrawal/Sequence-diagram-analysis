@@ -46,5 +46,4 @@ def extract(image,string):
 		    
 		#Non-maximum suppression on the bounding boxes
 		pick = non_max_suppression_fast(Boxes, probs=None, overlapThresh=0.3)
-	print(pick)	
 	return pick

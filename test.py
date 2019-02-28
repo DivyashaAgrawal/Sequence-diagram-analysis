@@ -68,6 +68,7 @@ class MyParser:
 		#list of coordinates and texts
 		txt_coordinates=device1.rows 
 		
+		pprint(txt_coordinates)
 
 		# Extracting components
 		comp=[]
@@ -97,32 +98,7 @@ class MyParser:
 		
 		#will have same x1 that is txt_coordinates[0]
 		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]
-		"""
-		forcomments=[]
-
-		for i in range(len(comments)):
-			f=0
-			for j in range(len(components)):
-				if(comments[i]!=components[j]):
-					f=1
-				else:
-					f=0
-					break
-			if(f==1):
-				forcomments.append(comments[i])
-
-		forforcomments=[]
-		for i in forcomments:
-			f=0
-			for j in functions:
-				if(i!=j):
-					f=1
-				else:
-					f=0
-					break
-			if(f==1):
-				forforcomments.append(i)"""
-	
+		
 		#for the whole text
 		words=[]
 		#for filtered text
@@ -154,7 +130,7 @@ class MyParser:
 		
 		#For the interactions
 		inter=[t for t in words2 if "int" in t]
-		
+
 		#For the functions
 		matching = [s for s in words2 if "(" in s]
 
@@ -268,7 +244,6 @@ class MyParser:
     			d[k] = tuple(d[k] for d in ds)
         
 		#correction of the orientation
-		l=list()
 		final=[]
 		d1=dict()
 		ll=list()
