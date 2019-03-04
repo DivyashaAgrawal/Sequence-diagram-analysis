@@ -1,0 +1,552 @@
+
+
+
+
+
+
+
+
+
+
+SparkIT Concept Paper and Handbook
+ 
+1	Introduction to SparkIT
+In the modern day automotive and embedded software development industry, the implementations and complexities of ECU’s are growing. This leads to a large portion of code being untested until deployed in the field. From what used to be around 1 million lines of code about a decade ago, this has grown to over 20 million today. The effort to write test cases is also increasing. With the time to market reducing, it is of prime importance to find a trade-off between quality of the product as against cost and time. To be better equipped to deal to the changing nature of software development environment and to create a quality product is the need of the hour. In order to reduce the overall software development effort, many organizations have adopted the strategy of using open source components, which in turn makes it harder to judge the overall quality of the delivered product. This all leads to the fact that in today’s development scenario, it is hard to control the quality of a product by only using human interaction. It is thereby important to use automation for tests, and more importantly, automation in a way that leads to scanning every line of code and ensuring that each line of the code is sufficiently tested well before the delivery of the product. 
+Statistics today show that about eighty-five percent of software bugs could be caught at development itself. However, with the reduced focus of early development tests, and the boring nature of creation of test cases, the quality of software testing is severely hampered. The tests that are commonly followed for capturing early defects are the unit and interface tests. Various tools are used, such as Google Test framework, TML etc, to reduce the complexity of writing tests cases. However, the drawbacks about such existing framework lies in the identification and creation of test data for test cases. More often than not, the test data’s are generated out of comfort ness, rather than by analytical analyses of what could break the code. The abusive test data which could break a code is often missed out while such test data is created. The ideology for creation of SparkIT as a tool for creating test data lies in easing out the identification of test data and as well in creating the test data that breaks the code. The more the faults in a code is found at the early phases, the less it would take to identify the cause for the faults and hence resulting in higher quality at lower cost. 
+In a nutshell, SparkIT is a tool for performing automated development tests. The two areas of focus for SparkIT are the Unit tests and Interface tests. Developers use tools like "Google Test Framework" more often for unit tests. However, with such tools, the effort to develop test cases are high.  In addition, creation of mock methods is not trivial. Developers often tend to write small subset of test cases, most often the positive ones. This brings down the efficacy of testing. SparkIT intends to solve this problem. With SparkIT’ s, self-learning algorithm and automated test case generation methodology, a single test case scenario is converted to multiple test case scenarios.
+
+In an ASPICE process reference model, SparkIT focuses on SW Unit Verification tests in the first stage of deployment. In a later phase, the focus shall also be extended to SW Integration and Integration test and SW Qualification tests.
+
+//Image1//
+ 
+
+While there is a common notion that automated test data creation is no good as compared to test data created by an experienced developer, which in most cases is true, SparkIT tends to replicate the intelligence of a developer into the powerful artificial intelligence engine. The structured data analytics method incorporated within the AI Engine aids the various rules framed by experienced developer for creation of test cases. The rules by itself are aimed to be community guided and hence the collection of such rules shall grow in due course of time, thereby resulting in multiplicity of test case creation. 
+This document shall describe the various intelligence algorithms used inside SparkIT, the workflow for projects that intends to use SparkIT, the features and benefits of using SparkIT and finally try the break the notion mentioned above. 
+
+1.1	Table of Contents
+Table of Contents
+1	Introduction to SparkIT	1
+1.1	Table of Contents	2
+1.2	Definition of a test case and test scenario	2
+1.3	Features of SparkIT	3
+2	Introduction to Unit Tests	9
+2.1	What does SparkIT provide as part of Unit Test?	11
+3	Introduction to Interface Tests	12
+4	Acronyms and Abbreviations	14
+5	Internals of SparkIT	14
+5.1	The cloud-target connection	17
+5.2	The target architecture	18
+5.3	Performing tests the SparkIT way	19
+5.4	Analytics Engine within SparkIT	20
+5.4.1	Document analytics	21
+5.4.2	Source code analytics	21
+5.5	Code generators	22
+5.5.1	Support for Gen3 platform components	22
+5.5.2	Support for Topas platform components	22
+5.6	Generations of test cases with SparkIT	22
+5.6.1	Auto-creation of tests by SparkIT	22
+5.6.2	Creating Manual test cases using SparkIT	24
+5.6.3	Validation of Test output	29
+6	Setting up a Project for SparkIT	33
+6.1	Adding a new project	33
+6.2	Setting up targets for SparkIT	33
+7	An Execution cycle with SparkIT	33
+7.1	Build to Test automation with Jenkins	34
+7.2	Bug Reporting with Bugzilla	34
+7.3	Error Logs	35
+7.4	Report Wizard	35
+
+
+1.2	Definition of a test case and test scenario
+ACRONYM	MEANING
+TEST CYCLE	The test cycle is a complete test execution for a particular software version. The cycle starts when the test is invoked with the information of software version, hardware version and component name. It ends when the complete runs of all the tests are completed and the result is sent out to project users.
+TEST SEQUENCE	This is a collection of test cases, which represent a particular use case. This is mainly applicable to Interface testing. Test sequences can be run in parallel, but every test case inside a test sequence shall be run in a sequence. 
+TEST CASE	A single function call or an interface call is regarded as a test case. This is basically the function to be tested with specific parameters and an expected result.
+
+1.3	Features of SparkIT
+The section shall describe the different features of SparkIT that is offered today. 
+
+Feature Group	Feature Name	Description
+Document Analyzers	EA analyser	Enterprise architect files for the project shall be scanned for the following information
+-	Sequence diagram involving interface functions
+-	Results of an operation and constraints/conditions for an interface method.
+-	Description of a component
+	Source code analyser	The source and header files for a component shall be analysed for the following information
+-	Function information including parameters
+-	Data types
+-	Conditions and constraints
+-	Input range
+-	Expected output
+-	Dependent functions
+-	If-tree/Branches
+-	Comments
+	Interface document analyser	The interface document for the component shall be analysed for the following information
+-	Interface function for a component
+-	Conditions and constraints
+-	Sequences (if any)
+-	Expected result of an operation
+	Requirement Specification analyser (Doors extract  in csv format)	The requirements document for a project shall be analysed in order to understand the following
+-	Component behaviour leading to understanding of an output and constraints
+	Concept and Design document	The concept and design document for a project shall be analysed in order to understand the following
+-	Component behaviour leading to understanding of an output and constraints
+-	Any input constraints
+-	Sequences if any
+-	Inter-component dependency
+-	Expected output
+Unit Test creation	Basic Test cases	The basic test cases shall be generated out of the document analysers and the following rules shall be used for creation of test cases
+-	Limits for data-types (the  min and max range data values for each data type)
+-	Previous faulted test cases 
+(regression)
+-	Test cases that shall ensure maximum test coverage
+
+These test cases shall be created by default and stored into the Database by the “one-time per function” logic.
+
+Changes to any part of the input document shall be analysed for the impact and generated test cases shall be modified accordingly.
+
+These test cases are static in nature.
+	Coverage based Test cases	The creation of test cases in this scenario is dynamic and shall be created based on the behaviour of the function under test. The implanted probes in the target function, created by SparkIT engine shall provide the coverage in a live manner, which shall be used for generation of new inputs with an intention to maximise the coverage of the tests. 
+	Parallel execution of Test cases	Test cases shall be run in parallel to one another. It could so happen here that the same test function could be called from two instances by the test framework. This is done in order to check for the presence of any concurrency issues. 
+Interface test creation 	Basic Test cases	The basic test cases shall be generated out of the document analysers and the following rules shall be used for creation of test cases
+-	Limits for data-types (the  min and max range data values for each data type)
+-	Previous faulted test cases 
+(regression)
+-	Test cases that shall ensure maximum test coverage
+
+These test cases shall be created by default and stored into the Database by the “one-time per function” logic.
+
+Changes to any part of the input document shall be analysed for the impact and generated test cases shall be modified accordingly.
+
+These test cases are static in nature.
+	Test scenario creation	Test scenario is a collection of test cases to be run for performing a particular functionality. The test cases within the scenario shall be run in a sequential manner.  
+	Error Test Scenaio	In a given test scenario, when a particular test case fails, the test scenarios containing the same test cases shall be executed in order to ascertain if the test scenario is causing the issue or to check if the individual test case is causing the problem.
+	Parallel execution of Test scenarios	Test cases shall be run in parallel to one another. It could so happen here that the same test function could be called from two instances by the test framework. This is done in order to check for the presence of any concurrency issues. 
+System Load Simulator	Insert system load	While tests are in progress, the framework shall change the system load on the target. This is done in order to test the behaviour of the function under different system environment conditions. 
+Manual Test case Entry	Test case creation using  HTML5 UI	The developer using HTML5 UI provided by the tool can create test cases and test scenarios.
+	Pseudocode	The developer can provide pseudocode on the form of a java file to describe the relationship between input and output parameters. This java code shall automatically be taken by the SparkIT server and considered for validation of output. 
+	Custom formula	Custom formula can be provided by the user using the frontend provided by the tool. This shall specify the relationship between input and expected parameters. 
+Build to Test Automation	(opt) SparkIT offers scripts to integrate with Jenkins and gerrit. 	SparkIT adds as a glue between the developer’s commit in gerrit to the selection of tag for integration of the particular tag. SparkIT provides scripts for the same. 
+HTML5 UI	Test case metrics view	A graphical view is provided to illustrate the number of test cases run, the number of success and failure for each of the test cases.
+	Project test case view	A graphical view is provided to illustrate the number of test cases for a project and how much have been run.
+	System load view	This view contains information on the current system load that is read from the target.
+	Memory view	This view contains information on the memory current used and available from the target.
+	Log Window	This window provides a live view of the server log. In the window you can get the information of the current test case, target returned values, success and failure of the case, etc. 
+	Project information window	This view provides an overview of the project
+	Project configuration view	This view aids in configuring a project. This is only available for administrators. 
+	Test Case Editor view	This view is for writing manual test cases and test scenario using UI. 
+	Test Validation view	This view is provided for developers to manually validate a test output against an input. The developer has also an option of overwriting the values.
+	Database analytics view	This is a view that is only available to the development team of SparkIT. Here we can query information on all the artefacts collected and analysed by SparkIT’s intelligence algorithm. 
+	Heartbeat(confidence) view	This view provides a heartbeat factor of how confidently the intelligence engine of SparkIT is able to predict the output of a particular function. The heartbeat displayed is for every function.
+Lower the value of heartbeat (starting from 55), the confidence is higher.
+	Coverage graph	This graph provides an information on the test coverage for a particular function, component. 
+Reports	Email 	After every test cycle, an email containing the report xml shall be sent to the project developers.
+	Report XML	A report xml shall be generated for every test cycle which contains the following information 
+-	Test case
+-	Test data
+-	Expected result
+-	Obtained result
+-	Success or failure
+-	Failure code
+-	Link to log information
+Logs	Target	SparkIT framework collects the logs from target after every test cycle and places it on server for debugging issues at a later phase. 
+	Server	SparkIT framework collects the logs from server after every test cycle and places it on server for debugging issues at a later phase.
+Natural Language Processing	Comments	The natural language processing techniques are used to analyse the following style of comments
+-	Doxygen style (Recommended)
+-	Free text  comments
+
+The comments are analysed for meaningful verbs and nouns. The verbs are matched to actions and the noun is mapped to a project attribute (component, function, variable, data_type etc)
+
+The actions are configurable and can be adapted to be user specific or project specific. This is done in order to match the styling for every user.
+Artificial Intelligence Engine	For output prediction	The artificial intelligence engine is invoked to predict the output a function shall provide for a given set of inputs. This is done using decision tree algorithms.
+	For coverage logic	The artificial intelligence engine is invoked to predict the input values for a function that shall hit the maximum branch coverage. This is done using decision tree algorithms.
+
+2	Introduction to Unit Tests
+Unit testing is a level of software testing where individual units/ components of a software are tested. The purpose is to validate that each unit of the software performs as designed. A unit is the smallest testable part of any software. It usually has one or a few inputs and usually a single output. In procedural programming, a unit may be an individual program, function, procedure, etc. In object-oriented programming, the smallest unit is a method, which may belong to a base/ super class, abstract class or derived/ child class.
+
+In the context of SparkIT, every method inside a class is considered a Unit. Every test case of SparkIT is linked to a method inside a class and this method shall be subjected to testing with various input parameters.
+
+Apart from the manual support provided by SparkIT for entering the test cases, SparkIT uses the following methodology for creation of test cases.
+
+//Image2//
+ 
+The document analysers shall analyse the source code under test (the component) and shall learn about the function and attributes of the function. The various attributes that are read by the analysers are as follows
+-	Function name
+-	Input parameters
+-	Return values
+-	Data types
+-	Branches within the source code
+-	Internal functions
+-	External function calls
+-	Function header comments
+-	Source code comments
+
+Each of these values shall be pushed to the database. Apart from analysing the source code, the design document for the component shall be analysed for the following information
+-	Function name
+-	Comments related to functions
+All the read values are pushed to the database and aggregated for a function.  The aggregated values are then passed to the Natural processing engine, which shall than scan through the document to make meaningful sense out of the comments. Currently only comments for English language are processed by the natural language engine. The comments are processed to derive the following information
+-	Constraints for input parameters
+-	Expected output
+
+It should be noted that the test case creation shall work even if the above mentioned parameters are not possible to be judged by the Natural language processing engine. The only difference would be that the efficiency of test case creation.
+
+Once the natural language processing engine has processed the database, it provides the analysed information back into the database. The analysed information is read by the machine-learning engine, which shall create the first set of basic test cases. Once the basic test cases are created, the tests are run. While the tests are in run, the artificial intelligence engine is invoked repeatedly to create test cases, which shall ensure that the coverage of the function under test is high. The SparkIT framework shall insert probes to the target, which shall feed the behaviour of function under test back to the SparkIT cloud. Based on the information from the probes, the engine shall produce more test cases with an intention to maximize the coverage.  The probes shall provide the following information from the target
+-	Input values received at the mock function
+-	Entry and exit of Mock functions and the actual function
+-	Return values of each function
+
+The values returned by the probes are collected at the cloud and are analysed to evaluate the following
+-	Coverage of the current run
+-	Behaviour of the function under test against previous software (regression test for consistency using Mock input values)
+-	Validation of test case
+2.1	What does SparkIT provide as part of Unit Test?
+SparkIT tool provides the following as part of unit test for a particular component
+-	Unit test framework
+-	Unit test functions for target
+-	Test data are created as per the mentioned feature requirement
+-	Validation of Test output
+-	Mock functions are automatically generated
+
+It should be noted that the execution environment (target, pc simulation, platform etc) for Unit testing is dependent on the project requirements. The scripts for particular project needs have to be adapted for every deployment model and would have to be done along with project teams.
+3	Introduction to Interface Tests
+Interface Testing is a software testing type, which verifies whether the communication between two different software systems is done correctly. A connection that integrates two components is called interface. This interface in could be in the form of an API or a service which is offered by a component using which another component could interact with. Testing of these connecting services or interface is referred to as Interface Testing. 
+An interface is actually software that consists of sets of commands, messages, and other attributes that enable communication between a device and a user. The character of an interface is illustrated in the form of a document (could be an xml or a word document), which defines how the interface could be used for accessing the services behind it. The interface across components running under different processes have an IPC (inter process communication) behind it. In order to test an interface for a component running under its own process, it is important to know the IPC communication used by the component.
+SparkIT today offers to supports the component using the following IPC mechanism for interface testing.
+-	DBUS IPC with interface specified in DBUS introspection xml
+-	ASF-CMS IPC with interface specified in CMA format.
+Additional IPC formats and interface specification formats can be supported based on project demands. 
+In the context of SparkIT, a test for interface specification would involve two basic functionalities
+-	Testing a single interface with the parameters mentioned as per the document.
+-	Testing for a sequence of interface that needs to work together for a complete feature.
+Test cases and test sequences for interfaces can be entered manually using the UI provided by the tool. This option is in addition to the automatic creation of test cases and test sequences by the tool itself. The tool uses the following methodology for creation of automatic test case.
+
+//Image3//
+ 
+
+The document analysers shall analyse the Enterprise architecture document for the project and shall learn about the interface, sequence diagram and other attributes of the component under test. The various attributes that are read by the analysers are as follows
+-	Component Name
+-	Interface information 
+-	Sequence diagram (With dependencies and method result for every operation)
+
+Each of these values shall be pushed to the database.
+
+The document analysers shall also analyse the interface document and shall read the following attributes from the interface document. 
+-	Interface function name
+-	Method names
+-	Method parameters
+-	Signal information and parameters
+-	Expected output and Constraints if mentioned.
+All the read values are pushed to the database and aggregated for a function.  The aggregated values are then passed to the Natural processing engine, which shall than scan through the document to make meaningful sense of all the information. The following information shall be obtained from the analysis engine
+-	Test sequence and dependencies across methods
+-	Constraints for input parameters and input range
+
+It should be noted that the test case creation shall work even if the above mentioned parameters are not possible to be judged by the Natural language processing engine. The only difference would be that the efficiency of test case creation.
+
+It shall be ensured that there exists a minimum of one test case per interface from the tool. 
+4	Acronyms and Abbreviations
+
+NAME	DESCRIPTION
+IPC	Interprocess communication
+ASF	Automotive Service Framework
+RPC	Remote procedure call
+AI	Artificial Intellingence
+ML	Machine Learning
+NLP 	Natural Language Processing
+DBUS	Desktop-Bus
+API	Application Program Interface
+ECU	Electronic Control Unit
+IBCPA	Input Branch Coverage Prediction Algorithm
+EA	Enterprise Architect
+HDCA	Heuristically Data Comparative Algorithm
+PPA	Platform project Analytics
+
+5	Internals of SparkIT
+The following section provides a glimpse of the techniques and algorithms used in SparkIT for creation of unit and interface tests. The algorithm is continuously adapted in order to improve the quality of test cases.
+
+
+//Image4//
+
+
+
+ 
+
+The above diagram illustrates in brief the different engines that are used inside SparkIT for creation and validation of test cases and test sequences. The engines are explained in the below sections. 
+The complete workflow of SparkIT is explained in the below diagram. 
+//Image5//
+
+ The input to SparkIT document analysers are a set of documents which includes Requirements document extract from Doors, Enterprise Architect, Source code, Doxygen output, Interface xml, concept document and design document. The documents are parsed through Document analysers, which are a set of python scripts. These python scripts analyses the artefacts for different attributes and creates simplified xml and MongoDB database entries. In addition to this platform dependent build and make files are generated. The next step involves generation of proxy files for target and the stubs for cloud. 
+The framework of SparkIT shall then invoke the Machine Learning engine, which shall analyse all the database entries and shall create test cases using different run logics. In addition to this, the engine shall use a custom developed Gaming algorithm based on coverage logic (designed out of Decision tree machine learning algorithm), which shall use the current functional coverage information to create additional tests on the fly. The output of a function is validated using Decision tree algorithms, Heuristically Data Comparative Algorithm which uses regressive test output to check for inconsistent behavior of the target and Platform project analytics which analyses the function behavior if different projects of the same platform. 
+5.1	The cloud-target connection
+Every target that needs to be used by SparkIT shall have to be registered with the SparkIT cloud. A software package shall be installed in the target shall take care of registration of the target to the cloud. The package itself is created by the auto-build mechanism of SparkIT. This package shall not be part of the released product. The registration signature consists of the following information
+-	Target_ip address (dhcp generated ip)
+-	MAC address of the target
+-	Software version
+-	Hardware version 
+-	Target Sample
+-	Component List
+-	Component version
+
+Once the cloud server receives a request to perform tests for a particular component, it shall first find a free target from its database. It shall then verify the software version installed in the target and if there is a mismatch, it shall then download a new software version. If the test is only at a component level, it can then do only an ipkg (delta update) update of the component, which needs to be tested. After the download, once the target is available, it shall then deploy the tests on the target.
+It should be noted that the cloud shall maintain a job list of tests that needs to be run. Every new request of a test shall be added to the queue and once a target becomes available, the job shall be pulled from the queue and executed.  The complete setup of cloud and server is illustrated in the following diagram
+
+ //Image6//
+
+5.2	The target architecture
+The following picture illustrates the different software components that are part of the Device Under test (DUT), which shall be needed to interact with the cloud server.
+ 
+//Image7//
+The Middleware component is an illustration of the component under test. Every component shall provide an interface, which shall be used as the test function. In an Interface test case, this shall be the IPC function and in case of an unit test, this could be a simple function call. Test client shall be generated from the SparkIT code generators. The client code has two parts to it. The first part contains Communext interfaces, which are used to communicate with the cloud using RPC calls. The second part contains binders to the function under test (this could be IPC call or a function call). The test client shall receive RPC triggers containing the test data from the cloud and make the appropriate call to the function under test. This shall receive the output from the test function and forward from the cloud for test output validation. The test client is basically a broker service between the cloud and the component under test. The code from this is completely generated. However the generators have to be modified depending upon the platform and the IPC mechanism used. New generators needs to be developed one time for every new combination. 
+
+In addition to the test client, there exists a DUTGW (DUT Gateway) component, which is developed by the SparkIT team. This prime functionality of this component is to register the target to the cloud with the necessary details. For this purpose, the DUTGW component shall have to interact with every component and shall also start and stop the component based on the request from the cloud. The DUTGW component shall also monitor the status of every component and shall report this back to the cloud. TCP-IP is used between DUTGW and the cloud for communication purpose.  The DUTGW component needs to be built for every platform and this is a mandatory component that needs to be deployed inside the target for SparkIT to run.
+5.3	Performing tests the SparkIT way
+Triggering tests in SparkIT can be done in the following ways
+-	Using the HTML UI provided by SparkIT
+-	Using REST-API calls provided by the SparkIT framework.
+
+The tests can be triggered at the following levels
+-	Full project level
+-	Component level
+-	Specific functions
+
+Every test trigger needs to have the information of whether it is for Unit Test or Interface test. Every call for the test needs to have the following information
+-	Unit test or Interface test
+-	Component name
+-	Function name
+-	Project name
+
+The following picture provides a complete information of how the workflow of SparkIT is with respect to deployment of tests
+
+ //Image8//
+
+5.4	Analytics Engine within SparkIT
+It is important to understand the logic as to how SparkIT understands the documents and what semantics and keywords that the analytics engine look for. 
+
+5.4.1	Document analytics
+The document analytics engine uses a variety of algorithms for scanning different formats of the document. In the first phase of the project, only sequence diagram out of Enterprise Architecture document is analysed. The sequence diagram is scanned using natural language processing techniques and a sequence of operations for an use case is deduced out of it. The sequence of operations is converted to a test block and every method involved in this sequence is a test case. 
+5.4.2	Source code analytics
+The source code analytics engine works in two different phases. In the first phase, the engine collects high-level information of the entire project source by scanning through the header files. From this information, a dictionary of all methods and data types are created and uploaded to the Mongo Database. 
+In the second phase, the engine runs through only the component that needs to be tested and scans for the following information
+-	Function name
+-	Input parameters
+-	Return values
+-	Data types
+-	Branches within the source code
+-	Internal functions
+-	External function calls
+-	Function header comments
+-	Source code comments
+
+In order for SparkIT analytics engine to understand the comments, it is recommended that the comments are documented in the Doxygen comment format. The engine would read the comments even otherwise, however the efficiency could be largely impacted. 
+Every sentence in the comments will be analysed against a dictionary_entry (built by phase one analysers) and English dictionary. The verbs of English language is configured to an action, dependency or constraint. 
+The projects would be able to customize the verb to action using a configuration xml provided to them.
+The comment analytics is done using certain open source natural language processing libraries. The python scripts implemented within the SparkIT framework shall make the necessary bindings to the NLP engine and shall upload the analysed block to the MongoDB. The test case generator shall then create the test cases based on the analysed information.
+5.5	Code generators
+SparkIT uses a numerous amount of code generators, which shall create the test client code for the target platform. In addition to this the binding code is created on the cloud which shall interact with the target over the Communext RPC. The code generators are developed in python and for every new platform or interface, the code generators have to be adapted. 
+
+Currently the code generator supports generation of code for two platforms, the Gen3 based Infortainment platform and the Topas based CCU platform. Both of these platforms are currently on linux. 
+5.5.1	Support for Gen3 platform components
+SparkIT offers support for Gen3 in the following topics
+-	Interface testing for components using ASF-CMS
+-	Interface testing for components using ASF-DBUS
+-	Unit testing
+
+The support is currently available only for the Linux environment and it is assumed here that the target is able to communicate with the cloud over RNDIS Ethernet gadget driver. Any additional requirement needs to be separately developed for SparkIT.
+5.5.2	Support for Topas platform components
+SparkIT offers support for Topas in the following topics
+-	Interface testing for components using ASF-CMS
+-	Unit testing
+
+The support is currently available only for the Linux environment and it is assumed here that the target is able to communicate with the cloud over RNDIS Ethernet gadget driver. Any additional requirement needs to be separately developed for SparkIT.
+
+
+5.6	Generations of test cases with SparkIT	
+5.6.1	Auto-creation of tests by SparkIT
+SparkIT creates the test cases automatically as per the logic mentioned below. It should be noted here that most of the test cases are created dynamically during runtime of the framework. This methodology also ensures that the developer is completely unaware of the tests that could be generated. 
+
+Every test cycle runs for a pre-configured number of test loops. 
+5.6.1.1	Sequential Run logic
+In this run cycle, test cases are run one after the other. This means that no two test cases shall be run in parallel. A single function call or interface shall be tested at a time. However the test data for the function under test shall have the following parameters
+-	User input test data
+-	Max values for each parameters as per their data type
+-	Min values for each parameters as per their data type
+-	Values as per the read constraints
+-	Random Values
+5.6.1.2	Parallel Run logic
+Multiple threads are here created in parallel and each test is run on these threads. The idea here is to check for concurrency and shared data issues. Test cases to run in parallel are chosen randomly and these test cases are executed in parallel. It could so happen that the two test cases that are chosen could be of the same function. When this happens, the same function shall be called from two threads(simulating mulit-client to single server communication) and shall be tested for re-entrancy.
+5.6.1.3	Coverage Run logic
+In this test run, the test data for the test cases are created to ensure that the test function reaches maximum coverage value. The SparkIT tool relies on installed probes from target during run time and provides test input which hits the branches that have not been reached so far. The framework knows every branch information and condition as part of source code analytics and hence the prediction of which input reaches which branch can be done. SparkIT also generates Mock function output, which shall ensure that the most of the branches can be reached.
+
+
+5.6.1.4	Error Test case Run Logic
+This test logic is confined to Interface testing. When a particular test case fails inside a test sequence, the framework automatically executes test sequences which contains the same test case. This is done in order to check if the problem exists with a particular test sequence or if the problem exists in a particular test case. This shall also provide an early hint to the developer on the root cause of the problem.
+5.6.1.5	Regression Test Run logic
+The test logic is to ensure regression test. If a particular test sequence fails with a software version, the test sequence is logged into the database. During the test run, this particular test case is re-run to check for regression failure. This test shall ensure if the bug associated with the test failure is solved in the particular version. 
+5.6.2	Creating Manual test cases using SparkIT
+The following section describes how test cases can be written manually using SparkIT.
+Note: There are UI changes, however, the methodology to create test cases remain the same. 
+
+5.6.2.1	Creating new test cases
+Following are the different steps for creating new test cases using SparkIT
+1.	After logging into the web tool, users are navigated to Projects tab, in which they can find all the projects that they have access to under ‘My projects’. Click on the project icon to select that project.
+ //Image9//
+
+2.	Once the project is selected, users are by default navigated to Run tab. To manually create Testcases, click on Editor tab. Users can see the project name in this window and all the components in the left side panel.
+Only after selecting a component, will the users be able to create a new Usecase.
+ 
+//Image10//
+After clicking on the “+” button, a new text editor appears. User can give any name and should press enter.
+//Image11//
+ 
+After pressing enter, Description text editor is highlighted and users are expected to give a short description. To add a Testcase, click on create step button.
+
+
+3.	After clicking on create button, a new window appears. From the select Testcase dropdown, user can pick the Testcase name, specific to the component. Users can give specific input values or constraints for SparkIt to generate input values according to the constraints.
+User can either give a specific expected result or a custom formula (A function that maps the relationship between input(s) and output(s)). SparkIt will not accept both Expected result and custom formula.To specify custom formula, click on “+” button.
+//Image12//
+ 
+
+
+The format to be followed when writing input, expected result and custom formula are explained in detail in section 5.1.3
+After filling all the required fields, click on save button.
+ //Image13//
+
+User has now configured a Usecase. This will be displayed in the Run tab for execution.
+
+5.6.2.2	The Test Descriptor Language (TDL) of SparkIT 
+
+5.6.2.2.1	Providing inputs using UI
+In the Inputs text editor in UI, users should press ‘enter’ after entering every single value in the text box. After pressing ‘enter’, entered value is highlighted.
+If a Testcase is expecting another Testcases output as an input, the input of the Testcase should be tagged with the other Testcase’s output.
+Example
+int val = int func3 (int a) -> TC1
+func4 (val) -> TC2 where func3&func4 are Testcases in a Testblock.
+Whenever there is a return value of a function, a tagged id shall be automatically generated. A tagged id will also be generated for reference data types and pointe. '&' is used to refer tagging. 
+Input in editor 
+
+ TC1: func3 parameter: 5 
+TC2: func4 parameter: &tc1
+5.6.2.2.2	Providing Constraints
+Constraints for every datatype are mentioned below. In the UI text editor, if the user has constraints, they should enter constraints in the specified format, otherwise enter “0” as a constraint.
+Constraints for Integer type inputs
+1.	Range of the number
+2.	Only positive / Only negative / positive or negative
+To specify the constraints in UI, format to be followed is similar to “sign range”
+Where sign can be ‘+’ for only positive, 
+                               ‘-‘for only negative, 
+                               ‘*’ for positive and negative and range is the number of digits input consists of
+Example:
+“+3” means a positive 3 digit number.
+“0” means no input constraints
+Constraints for Float type inputs
+1.	Range of the number
+2.	Only positive / Only negative / positive or negative
+To specify the constraints in UI, format to be followed is similar to “sign range”
+Where sign can be ‘+’ for only positive, 
+                               ‘-‘for only negative, 
+                               ‘*’ for positive and negative and range is the number of digits input consists of
+Example:
+“-2” means a negative 2 digit mantissa and 15 digit (default) exponent number.
+“0” means no input constraints
+Constraints for String type inputs
+Constraints for String type inputs.
+1.	Length of the string
+2.	Only Alphabets/ Numbers/ Special characters
+3.	Any combination of the Alphabets and Numbers and special characters.
+To specify the constraints in UI, format to be follows is similar to “type range”
+Where type can be ‘a’ for only alphabets, 
+                               ‘n‘ for only numbers, 
+                               ‘s’ for special characters 
+                               ‘an’ or ‘na’ for alphabets and numbers.
+                               ‘as’ or ‘sa’ for alphabets and special characters.
+                               ‘sn’ or ‘ns’ for special characters and numbers.
+                               ‘ans’ or ‘asn’ or ‘nsa’ or ‘nas’ or ‘san’ or ‘sna’ for alphabets and numbers and special    characters and range is an integer number specifying the length of the string.
+Example:
+“ns4” means a string of length 4 which consists of numbers and special characters.
+“0” means no input constraints
+
+Constraints for Complex datatype inputs
+Every data type has its own set of rules users can set. If there are complex datatype(s), like structures, rules of the basic datatype(s) that forms the structure applies since basic datatypes are building blocks of complex datatype.
+5.6.2.2.3	Providing Expected Result
+Format for expected result is “FR.resultvalue”.
+Example:
+“FR.0” where 0 is the expected output.
+“FR.abcd” where abcd is the expected output.
+
+5.6.3	Validation of Test output
+Validation is test output is one the key challenges for SparkIT tool. Various methods are employed for validating the test output. While it is easy to validate a test output based on user’s input of expected result, it is highly unexpected of developers to provide test output for the numerous amount of test data that is generated by SparkIT. For functions where the test output is easily predictable, a custom formula field is provided to the developer, wherein he can key in the formula. This formula shall be used for prediction of test output. In cases wherein the test output could be judged based on pseudocode (using logical and relational operations), the pseudo code can be provided in java/python and the framework shall use this information for judgement of the output. 
+
+When the two above methods are not available, then the framework relies on its analytics engine to provide any valid data regarding the output. It there is some data regarding this, the output prediction will be based out of this information. If not, then the framework shall use decision tree algorithm based on output input pair relationship. This technique of artificial intelligence provides a semi-accurate range of expected test output for a given test data. 
+
+Following diagram illustrates the different sources for validation of test output. 
+ //Image14//
+
+Every source is associated with a weightage and an accuracy, which is an illustration of how well the source is able to predict the output. Over a period of time, when a particular source is judging the output incorrectly, this shall automatically be eliminated as the accuracy becomes 0.
+
+In addition to this, if there exists a source outside of the project but within the same platform for the same function, this source shall also be considered for validation of test output, however this shall be used at a lower weightage level. In this way, we can leverage the data across the platform and projects.
+
+User is also provided an option of validating an input output pair and correcting the test prediction using an UI provided to him. When this happens, the framework shall use this in the next loops and validate the test output accordingly.
+
+Apart from the output of function under test, the inputs at different Mock functions are also checked and recorded for consistency of data across different software versions.
+
+The following are the different kinds of errors detected and reported by the tool
+-	NO_ERROR (test pass)
+-	NO_RETURN (function not returned, timeout detected)
+-	INCORRECT_RETURNVAL(return value is wrong)
+-	INCONSISTENT_RETURNVAL (framework is unable to detect the valid output, however the return value for the input is changed across different tests)
+-	UNABLE_TO_JUDGE(framework is not able to validate the output)
+-	INCONSISTENT_MOCK(different values across software version received at mock functions)
+-	INCORRECT_MOCK(mock values received which are not as per expectations)
+
+The cases NO_RETURN, INCORRECT_RETURN, INCONSISTENT_RETURN, INCONSISTENT_MOCK and INCORRECT_MOCK shall result in failure of test case.
+
+5.6.3.1	Manual Validation and Supervised Learning
+For every Testcase, there are certain input parameters and output parameters. Initially for every prediction it makes, it asks the user to validate its prediction so as to correct itself. 
+Under the Reports tab in UI, all the Testcases that require validation for input output pairs (<ip,op>). Press ‘Input parameters’, Users will find all the data sets. Users should press ‘yes’ if they think that the prediction is correct and ‘no’ otherwise.
+If the user thinks that the prediction is incorrect, they can provide the expected result under ‘provide expected result if possible’ , if they can provide a relational model, they can enter it under ‘ provide a relational model if possible’, if they want to upload any files, they can do it under ‘ upload file if required’ . 
+
+ 
+
+ 
+//Image15//
+//Image16//
+
+6	Setting up a Project for SparkIT
+This section is only applicable for administrators of the tool and describes the essential details needed about the project for setting up a project on SparkIT Server.
+
+6.1	Adding a new project
+The following are some of the information that needs to be known about the project
+-	Project name
+-	Platform name
+-	Build path
+-	Build Server information
+-	Hardware version for tests
+-	Project users
+-	Project managers (for Mail Report)
+
+6.2	Setting up targets for SparkIT
+For a target to be attached to SparkIT server, the following information has to be sent out from the target to the server for registration
+-	Project name
+-	Components that can be tested
+-	Software version
+-	Hardware version
+-	MAC ID
+-	Component version
+
+7	An Execution cycle with SparkIT
+SparkIT offers build to test automation concept wherein when a developer checks in his code, the code shall be pushed to integration only after being tested and approved successful by SparkIT. However, this function is optional for projects and needs to be customized as per the needs of different platforms. 
+SparkIT offers generic python scripts which can be used to trigger tests from different build and configuration management tools. The result of the tests would also be notified. This enables SparkIT to be introduced at any phase of the project build management life cycle. 
+
+The below sections gives a glimpse of how SparkIT has been configured on a Telematics platform.
+7.1	Build to Test automation with Jenkins
+The following diagram illustrates the Build to test automation concept proposed and tested with SparkIT for Topas platform components. The same can be extended to different platform based on the tools used and the capabilities of the used tools. 
+//Image17//
+ 
+
+Scripts are available in the SparkIT repository which are configured to run based on New Gerrit commits. The committed changes are picked and built using Jenkins server. Once the project build is complete, SparkIT specific packages are built next. Once all the built is successful, a trigger is sent to SparkIT server. The SparkIT framework then shall check for a free target (if not available, the build shall be added to a job queue), and flash the SW and run the tests for the particular component. Finally the result of the test is reflected on the Gerrit server with the verified flag set on the commit. Once the code review is done after the verified status is set, the integration build shall be run.
+7.2	Bug Reporting with Bugzilla
+SparkIT provides a mechanism to automatically create bugs whenever a test case fails. The bugs are currently setup to be created in Bugzilla maintained at SparkIT server. Based on project configuration, the scripts can be modified to create tickets on project server. SparkIT framework ensures that there shall be no duplicate issues created when a test case fails. It shall check if a defect for the particular test case exists and on when it does not exist, the framework shall log a defect.
+7.3	Error Logs
+Error logs from target and logs from SparkIT server, which are relevant for debugging an issue are placed on to the server. The developers can look up to the logs which can aid them in debugging why a test case has failed. The SparkIT server logs contain information on the test sequence, test data, return values for the function call, expected result, system load information, memory information and the failure code. 
+7.4	Report Wizard
+A test report shall be provided in the form of an xml document for every test cycle. This xml shall be emailed to the project users. The test report shall contain all the information related to the test cases run in a cycle, the test sequence, and the success and failure information.  The link to the corresponding log file shall also be mentioned in the report xml.
+In addition to this, SparkIT offers a graphical UI containing metrics for every project, the load information, memory information, test case success and failure information and other paramters relevant for managing a project.
+
+
