@@ -57,8 +57,8 @@ class MyParser:
 			interpreter.process_page(page)
 		self.records = [] # The text list
 		lines = retstr.getvalue().splitlines()
-	
-		# Added functionality in converter.py in PDFMiner to 
+		
+		
 		# get coordnates of bounding boxes bounding the texts.
 		# Create a PDF device object
 		device1 = PDFPageDetailed(rsrcmgr, laparams=laparams) 
@@ -68,40 +68,49 @@ class MyParser:
 		for page in PDFPage.create_pages(document): 
     			interpreter1.process_page(page)
 				# receive the LTPage object for this page
-    			device1.get_result()
+    			#device1.get_result()
 
 		#list of coordinates and texts
 		txt_coordinates=device1.rows 
 		
+		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))
+		comments=[]
+		#Extracting Comments
+		for i in range(len(forcomments)):
+			if((i+1)!=len(forcomments) and forcomments[i][5]!=forcomments[i+1][5]):
+				pp=i+1
+				break
+			else:
+				pp=0
+		rest=[]
+		for i in range(len(forcomments)):
+			if(i>=pp):
+				comments.append(forcomments[i][4])
+			else:
+				rest.append(forcomments[i][4])
 
+		
 		# Extracting components
 		comp=[]
 
 		f=0
-		for y in range(len(txt_coordinates)):
-		
-			if ((y+1)!=len(txt_coordinates) and 
-			txt_coordinates[y][1]==txt_coordinates[y+1][1] and 
-			txt_coordinates[y][3]==txt_coordinates[y+1][3]):
-				p=txt_coordinates[y+1][4]
-				comp.append(txt_coordinates[y][4])
+		p=0
+		for y in range(len(rest)):
+			if ((y+1)!=len(rest) and 
+			rest[y][1]==rest[y+1][1] and 
+			rest[y][3]==rest[y+1][3]):
+				comp.append(rest[y][4])
+				p=rest[y+1][4]
 		comp.append(p)
 		
-
 		#Extracting functions
-		#functions=[s for s in txt_coordinates if "(" in s]
-		functions=[]
-		for i in range(len(txt_coordinates)): 
-			if "(" in txt_coordinates[i][4]:
-				q=txt_coordinates[i][4]
-				functions.append(q)
-		
-		#Extracting the comments (Same x-coordinates of comments)		
+		functions=[s for s in rest if "(" in s]
+		"""#Extracting the comments (Same x-coordinates of comments)		
 		values=set(map(lambda x:x[0],txt_coordinates))
 		
 		#will have same x1 that is txt_coordinates[0]
-		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]
-		pprint(txt_coordinates)
+		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]"""
+		
 		#for the whole text
 		words=[]
 		#for filtered text
@@ -134,7 +143,6 @@ class MyParser:
 		inter=[t for t in words2 if "int" in t]
 		#For the functions
 		matching = [s for s in words2 if "(" in s]
-
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages:
@@ -236,7 +244,7 @@ class MyParser:
 			 
 		#Dictionary of coordinates of arrows and pair of starting and ending boxes
 		cor_box=dict(zip(od,boxes))
-		
+		pprint(cor_box)
 		#Map the orientatoin and components
 		ds = [orient, cor_box]
 		#pprint(ds)
@@ -297,7 +305,7 @@ class MyParser:
 		start='('
 		end=')'
 		count=1
-		for i in matching:
+		for i in functions:
 			ip=(i.split(start))[1].split(end)[0]
 			name=i.split('(')[0]
 			method={"method_name ": name, "param" :{"Sequence": count, "input" : ip, "output" : "none" }}
@@ -315,8 +323,8 @@ class MyParser:
 			f.write('\n\n')
 		f.write('The methods are: ')
 		f.write('\n\n')
-		for i in range(len(matching)):
-			f.write(str(i+1) + ') '+ matching[i] + ' is going from ' + final[i][0] + ' to ' + final[i][1])
+		for i in range(len(functions)):
+			f.write(str(i+1) + ') '+ functions[i] + ' is going from ' + final[i][0] + ' to ' + final[i][1])
 			f.write("\n")
 		f.write('\n\n')
 		
