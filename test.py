@@ -73,23 +73,26 @@ class MyParser:
 		#list of coordinates and texts
 		txt_coordinates=device1.rows 
 		
-		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))
+		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))#Sorted according to font type
 		comments=[]
 		#Extracting Comments
 		for i in range(len(forcomments)):
-			if((i+1)!=len(forcomments) and forcomments[i][5]!=forcomments[i+1][5]):
+			if((i+1)!=len(forcomments) and forcomments[i][5]!=forcomments[i+1][5]):#If there is a change in type of font put it in comment array
 				pp=i+1
 				break
 			else:
 				pp=0
-		rest=[]
+		rest=[]# Array for text with coordinates except comments
+		rest1=[]# Array for text without coordinates except comments
+		
 		for i in range(len(forcomments)):
 			if(i>=pp):
 				comments.append(forcomments[i][4])
 			else:
-				rest.append(forcomments[i][4])
+				rest.append(forcomments[i])
+				rest1.append(forcomments[i][4])
 
-		
+		pprint(rest)
 		# Extracting components
 		comp=[]
 
@@ -104,45 +107,12 @@ class MyParser:
 		comp.append(p)
 		
 		#Extracting functions
-		functions=[s for s in rest if "(" in s]
-		"""#Extracting the comments (Same x-coordinates of comments)		
-		values=set(map(lambda x:x[0],txt_coordinates))
-		
-		#will have same x1 that is txt_coordinates[0]
-		comments = [[y[4] for y in txt_coordinates if y[0]==x] for x in values]"""
-		
-		#for the whole text
-		words=[]
-		#for filtered text
-		words2=[]
-		for i in lines:
-			i=i.replace(" ","")
-			
-		for i in lines:
-			words.append(i)
-	
-		#Filter the spaces
-		for i in range(len(words)):
-			if((i-1)>-1 and (i+1)!=len(words) and words[i]=='' and (words[i+1].startswith("("))):
-				words2.append(words[i-1]+ "" + words[i+1] )
-				
-
-			if(((i+1)%2)!=0 and (i+1)!=len(words) and words[i+1]!=''):
-				words2.append(words[i] + " " + words[i+1])
-				i=i+2
-			
-			elif(i%2==0 and words[i]!='' ):
-				words2.append(words[i])
-		for i in range(len(words2)):
-			if(words2[i].startswith("(") or words2[i].startswith(" (")):
-				words2[i]="."
-		
+		functions=[s for s in rest1 if "(" in s]
 		#For the alternatives
-		alt=[t for t in words2 if "alt" in t]
+		alt=[t for t in rest1 if "alt" in t]
 		#For the interactions
-		inter=[t for t in words2 if "int" in t]
-		#For the functions
-		matching = [s for s in words2 if "(" in s]
+		inter=[t for t in rest1 if "int" in t]
+		
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages:
@@ -156,7 +126,7 @@ class MyParser:
 		#read the components_boxes
 		temp_comp = "sample_images/components"
 		pick_comp = extract(image,temp_comp)
-
+		
 		#read the self arrow
 		slf= "sample_images/self_arrow"
 		pick_self = extract(image,slf)
@@ -171,13 +141,13 @@ class MyParser:
 		pick_lft_rght=[]
 		for i in range(len(pick)):
 			f=1
-			for j in range(len(pick_self)):
-				if (pick[i][0]>=pick_self[j][0] and pick[i][2]<=pick_self[j][2]):
+			for j in range(len(pick_self)):#Seperating right_left arrow from self_arrow
+				if (pick[i][0]>=pick_self[j][0] and pick[i][2]<=pick_self[j][2]):#The arrow which has greater value from x1(pick_self[0]) and lesser value that x2(pick_self[2])
 					f=0
 					break
 			if(f == 1):
 				pick_lft_rght.append(pick[i])
-
+		
 		#read the boxes
 		template = "sample_images/small_boxes"
 		pick_box = extract(image,template)
@@ -218,7 +188,7 @@ class MyParser:
 		if(i==len(pick_box)):
 			single=[[pick_box[i-1][0],pick_box[i-1][1],pick_box[i-1][2],pick_box[i-1][3]],[]]
 			boxes.append(single)
-		
+	
 		#Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
 		real=[]
 		for i in pick_box:
@@ -240,14 +210,13 @@ class MyParser:
 			if q in components:	
 					boxes[i][1]=components[q]+1
 			
-		
-			 
+		 
 		#Dictionary of coordinates of arrows and pair of starting and ending boxes
 		cor_box=dict(zip(od,boxes))
-		pprint(cor_box)
+		
 		#Map the orientatoin and components
 		ds = [orient, cor_box]
-		#pprint(ds)
+		
 		d = {}
 		for k in orient:
     			d[k] = tuple(d[k] for d in ds)
@@ -289,15 +258,13 @@ class MyParser:
 		
 		for i in range(len(final)):
 			
-			final[i][0]=comp[final[i][0]-1]
+			final[i][0]=components[final[i][0]-1]
 			if(final[i][1]==-1):
 				final[i][1]='NULL'
 			else:
-				final[i][1]=comp[final[i][1]-1]
+				final[i][1]=components[final[i][1]-1]
 
-		#Find euclidean distance between
-		arrow_coordinates=[]
-		
+	
 
 		#Insert document in collection
 		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
