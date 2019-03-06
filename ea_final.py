@@ -1,19 +1,18 @@
-#!/usr/bin/env python
-
-
-#Import the system libraries
-
 import os
 import sys
+import cv2
 import collections
+import numpy as np
 try:
-	from StringIO import StringIO  # TODO: Switch to future
+	from StringIO import StringIO
 except ImportError:
 	from io import StringIO
 
-#Import downloaded libraries
-import cv2
-import numpy as np
+
+from mongo import *
+from extraction import extract
+from text_coordinates import PDFPageDetailed
+
 from pprint import pprint
 from matplotlib import pyplot as plt
 from pdfminer.pdfpage import PDFPage
@@ -26,76 +25,62 @@ from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFTextExtractionNotAllowed
 
-#Import created modules
-from mongo import *
-from extraction import extract
-from text_coordinates import PDFPageDetailed
-
 class MyParser:
-
-	def __init__(self, pdf):
-		
-		###read the pdf and read the text
-		parser = PDFParser(open(pdf, 'rb')) # Parse
-		# Create the document model from the file
-		document = PDFDocument(parser) 
-		if not document.is_extractable:
-			# if document is not protected, Try to parse the document
-			raise PDFTextExtractionNotAllowed
-		# Create a PDF resource manager object that stores shared resources. 
-		rsrcmgr = PDFResourceManager()
-		# Create a buffer for the parsed text 
-		retstr = StringIO() 
-		# Spacing parameters for parsing
-		laparams = LAParams() 
-		codec = 'utf-8'
-		# Original text converter which coverts pdf into text by reading small chuncks
-		# and merging the ones close to each other.
-		device = TextConverter(rsrcmgr, retstr,codec = codec,laparams = laparams) 
-		interpreter = PDFPageInterpreter(rsrcmgr, device)
+	def __init__(self,pdf):
+		document=createPDFDoc(pdf)
+		device,interpreter=createDeviceInterpreter()
+		pages=PDFPage.create_pages(document)
 		for page in PDFPage.create_pages(document):
-			interpreter.process_page(page)
-		self.records = [] # The text list
-		lines = retstr.getvalue().splitlines()
+    			interpreter.process_page(page)
+		self.txt_coordinates=device.rows
 		
 		
-		# get coordnates of bounding boxes bounding the texts.
-		# Create a PDF device object
-		device1 = PDFPageDetailed(rsrcmgr, laparams=laparams) 
-		# Create a PDF interpreter object
-		interpreter1 = PDFPageInterpreter(rsrcmgr, device1)  
+class PdfMiner:
+		
+	def createPDFDoc(fpath):
+    		fp = open(fpath, 'rb')
+   		parser = PDFParser(fp)
+    		document = PDFDocument(parser, password='')
+    		# Check if the document allows text extraction. If not, abort.
+    		if not document.is_extractable:
+        		raise "Not extractable"
+    		else:
+        		return document
 
-		for page in PDFPage.create_pages(document): 
-    			interpreter1.process_page(page)
-				# receive the LTPage object for this page
-    			#device1.get_result()
 
-		#list of coordinates and texts
-		txt_coordinates=device1.rows 
-		
-		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))#Sorted according to font type
+	def createDeviceInterpreter():
+    		rsrcmgr = PDFResourceManager()
+		retstr = StringIO() 
+    		laparams = LAParams()
+    		device = PDFPageDetailed(rsrcmgr, laparams=laparams) 
+    		interpreter = PDFPageInterpreter(rsrcmgr, device)
+    		return device, interpreter
+
+
+class Text_Extraction:
+
+	def comment_extract(text):
+		_sorted = sorted(text ,key=lambda x:(x[5],-x[1])) #Sorted according to font type
 		comments=[]
 		#Extracting Comments
-		for i in range(len(forcomments)):
-			if((i+1)!=len(forcomments) and forcomments[i][5]!=forcomments[i+1][5]):#If there is a change in type of font put it in comment array
-				pp=i+1
+		for i in range(len(_sorted)):
+			if((i+1)!=len(_sorted) and _sorted[i][5]!=_sorted[i+1][5]):#If there is a change in type of font put it in comment array
+				p=i+1
 				break
 			else:
-				pp=0
-		rest=[]# Array for text with coordinates except comments
+				p=0
+		rest=[] # Array for text with coordinates except comments
 		rest1=[]# Array for text without coordinates except comments
-		
 		for i in range(len(forcomments)):
-			if(i>=pp):
-				comments.append(forcomments[i][4])
+			if(i>=p):
+				comments.append(_sorted[i][4])
 			else:
-				rest.append(forcomments[i])
-				rest1.append(forcomments[i][4])
-
-		
+				rest.append(_sorted[i])
+				rest1.append(_sorted[i][4])
+	
+	def component_extract(text):
 		# Extracting components
 		comp=[]
-
 		f=0
 		p=0
 		for y in range(len(rest)):
@@ -105,55 +90,66 @@ class MyParser:
 				comp.append(rest[y][4])
 				p=rest[y+1][4]
 		comp.append(p)
-		
+	
+	def function_extract:
 		#Extracting functions
 		functions=[s for s in rest1 if "(" in s]
 		#For the alternatives
 		alt=[t for t in rest1 if "alt" in t]
 		#For the interactions
 		inter=[t for t in rest1 if "int" in t]
-		
+	
+class convert pdf_to_image:
+
+	def convert():
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages:
 			page.save('input.png', 'PNG')
-		image = cv2.imread('input.png')
+		image = cv2.imread('input.png')#Save the image in the same folder
 
-		#dictionary for orientation of the arrows
-		orient={'key':'value'}
+class Image_Extraction:
+	
+	orient={'key':'value'}
+	def component_extract():
+		
 
 		
 		#read the components_boxes
 		temp_comp = "sample_images/components"
-		pick_comp = extract(image,temp_comp,0.95)
-		
+		pick_comp = extract(image,temp_comp)
+
+	def arrow_extract():
+
 		#read the self arrow
 		slf= "sample_images/self_arrow"
-		pick_self = extract(image,slf,0.9)
+		pick_self = extract(image,slf)
 
 		#read the right_to_left arrow
 		rght_lft = "sample_images/right_arrow"
-		pick_rght_lft = extract(image,rght_lft,0.9)
+		pick_rght_lft = extract(image,rght_lft)
 
 		#read the left_to_right arrow
 		lft_rght = "sample_images/left_arrow"
-		pick = extract(image,lft_rght,0.9)	
-	
+		pick = extract(image,lft_rght)		
 		pick_lft_rght=[]
-				
 		for i in range(len(pick)):
 			f=1
-			for j in range(len(pick_self)):#Seperating right_left arrow from self_arrow
-				if (pick[i][0]>pick_self[j][0] and pick[i][2]<pick_self[j][2] and pick[i][3]>pick_self[j][3]):#The arrow which has greater value from x1(pick_self[0]) and lesser value that x2(pick_self[2])
+			for j in range(len(pick_self)):
+				if (pick[i][0]>=pick_self[j][0] and pick[i][2]<=pick_self[j][2]):
 					f=0
 					break
 			if(f == 1):
 				pick_lft_rght.append(pick[i])
-		pprint(pick_lft_rght)
+
+	def point_extract():
 		#read the boxes
 		template = "sample_images/small_boxes"
-		pick_box = extract(image,template,0.95)
-		
+		pick_box = extract(image,template)
+
+class Mapping:
+
+	def arrow_component():
 
 		for (startX, startY, endX, endY) in pick_rght_lft:#for right
 				orient[startY] ='left to right'
@@ -167,7 +163,6 @@ class MyParser:
 		#Reversing the lists to get correct index
 		pick_box[:] = pick_box[::-1]
 		pick_comp[:] = pick_comp[::-1]
-		pick_comp = sorted(pick_comp,key=lambda x:(x[0]))#Sorted components coordinates
 		
 		#Get the directions of the arrows and map it to the functions extracted
 		del orient['key']
@@ -180,7 +175,7 @@ class MyParser:
 		i=1
 		boxes=[]
 		while(i<(len(pick_box))):
-			if(pick_box[i-1][1]-pick_box[i][1]>=-100):
+			if(pick_box[i-1][1]-pick_box[i][1]>=-10):
 				pair=[[pick_box[i-1][0],pick_box[i-1][1],pick_box[i-1][2],pick_box[i-1][3]],[pick_box[i][0],pick_box[i][1],pick_box[i][2],pick_box[i][3]]]
 				boxes.append(pair)
 				i=i+2
@@ -191,22 +186,18 @@ class MyParser:
 		if(i==len(pick_box)):
 			single=[[pick_box[i-1][0],pick_box[i-1][1],pick_box[i-1][2],pick_box[i-1][3]],[]]
 			boxes.append(single)
-		
+	
 		#Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
 		real=[]
 		for i in pick_box:
 			real.append(tuple(i))
-		
 		#Create dictionary of boxes and components(indexwise)
 		components=dict()
 		for j in range(len(real)):
-			for i in range(len(pick_comp)):
-				
-				if((real[j][0]>pick_comp[i][0]) and (real[j][0]<pick_comp[i][2])):
+			for(i,(startX, startY, endX, endY)) in enumerate(pick_comp):
+				if(real[j][0]>startX and real[j][0]<endX):
 					components[real[j]]=i
 					break
-					
-		
 		#Create the dictionary of components and arrows 
 		for i in range(len(boxes)):
 			r=tuple(boxes[i][0])
@@ -217,7 +208,7 @@ class MyParser:
 			if q in components:	
 					boxes[i][1]=components[q]+1
 			
-		
+		 
 		#Dictionary of coordinates of arrows and pair of starting and ending boxes
 		cor_box=dict(zip(od,boxes))
 		
@@ -227,8 +218,9 @@ class MyParser:
 		d = {}
 		for k in orient:
     			d[k] = tuple(d[k] for d in ds)
-        	
+        
 		#correction of the orientation
+		l=list()
 		final=[]
 		d1=dict()
 		ll=list()
@@ -244,14 +236,14 @@ class MyParser:
 			l=list(d1[k])
 			if(l[1][1]==[]):
 				l[1][1]=-1
-			if(l[0]=='left to right' or l[0] =='self'):
+			if(l[0]=='left to right'):
 				p=l[1][0]
 				q=l[1][1]
 				if(p>q and q!=-1):
 					t=l[1][0]
 					l[1][0]=l[1][1]
 					l[1][1]=t
-			elif(l[0]=='right to left' ):
+			elif(l[0]=='right to left'):
 				p=l[1][0]
 				q=l[1][1]
 				if(p<q and q!=-1):
@@ -259,22 +251,24 @@ class MyParser:
 					l[1][0]=l[1][1]
 					l[1][1]=t
 			final.append(l[1])
-			
-				
-		
+
+	def arrow_function():
 		#Making a list of components for arrows
-		#Naming the arrows
 		
 		for i in range(len(final)):
 			
-			final[i][0]=comp[(final[i][0]-1)]
+			final[i][0]=components[final[i][0]-1]
 			if(final[i][1]==-1):
 				final[i][1]='NULL'
 			else:
-				final[i][1]=comp[final[i][1]-1]
+				final[i][1]=components[final[i][1]-1]
 
 	
-		
+
+	
+class DataBase:
+
+	def push_db():
 		#Insert document in collection
 		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
 		c=[]
@@ -289,8 +283,16 @@ class MyParser:
 			count+=1
 		
 		contentDict={"IPPC": {"EA_analytics" : c }}
-		doc = InsertIntoCollection(collobj,contentDict)
+		doc=InsertIntoCollection(collobj,contentDict)
+
+	def find_element():
+	
+class file:
+	
+	def arrange_file():
+
 		#Save the text in a text file
+
 		f= open('EA_miner.txt','w')
 		f.write('The Components are:')
 		f.write('\n')
@@ -307,8 +309,7 @@ class MyParser:
 		f.close()
 		
 
-		 
+
 if __name__ == '__main__':
 	p = MyParser(sys.argv[1])
-	print ('\n'.join(p.records))
-
+	

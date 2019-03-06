@@ -32,7 +32,7 @@ codec = 'utf-8'
 device = TextConverter(rsrcmgr, retstr,codec = codec,laparams = laparams) 
 interpreter = PDFPageInterpreter(rsrcmgr, device)
 for page in PDFPage.create_pages(document):
-	interpreter.process_pagit ge(page)
+	interpreter.process_page(page)
 records = [] # The text list
 lines = retstr.getvalue().splitlines()
 words=[]

@@ -1,0 +1,829 @@
+
+
+
+	
+	
+	
+	h1 { margin-bottom: 0cm; direction: ltr; color: rgb(46, 116, 181); line-height: 108%; text-align: left; break-inside: avoid; }h1.western { font-family: "Calibri Light", serif; font-size: 16pt; font-weight: normal; }h1.cjk { font-size: 16pt; font-weight: normal; }h1.ctl { font-size: 16pt; font-weight: normal; }p { margin-bottom: 0.25cm; direction: ltr; line-height: 120%; text-align: left; }a:link { color: rgb(5, 99, 193); }
+
+
+
+
+
+
+	Project
+	location:
+
+
+	
+
+
+	Robert
+	BOSCH Group
+
+
+	
+
+
+	
+
+
+	
+
+
+	
+
+
+	
+
+
+	Guide
+	information:
+	
+	
+
+
+	
+
+
+	S
+	Anand Kumar (RBEI/ECG-EP3)
+
+
+	
+
+
+	Email:
+	Anandkumar.S2@in.bosch.com
+
+
+	
+
+
+	Work:
+	+91(80)6657-6159
+
+
+	
+
+
+	Mobile:
+	+91-76250-64620
+
+
+	
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	SparkIT
+	- The "Development Test Suite" (DTS)
+
+
+
+
+
+Introduction:
+
+
+
+SparkIT
+is a tool for automated development tests. In a development workflow,
+this tool focusses on unit and interface testing. Developers use
+tools like "Google Test Framework" more often for unit
+tests. However, with such tools, the effort to develop test cases are
+high.  In addition, creation of mock methods is not trivial.
+Developers often tend to write small subset of test cases, most often
+the positive ones. This brings down the efficacy of testing. SparkIT
+intends to solve this problem. With SparkIT’ s self-learning
+algorithm and automated test case generation methodology, a single
+test case scenario is converted to multiple test case scenarios
+
+
+
+In
+an ASPICE process reference model, SparkIT focuses on SW Unit
+Verification tests in the first stage of deployment. In a later
+phase, the focus shall also be extended to SW Integration and
+Integration test and SW Qualification tests. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+           
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+Figure
+1: ASPICE Process Reference Model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Objectives:
+
+
+Automatically
+Generates Test cases and Test Sequences
+
+
+SparkIT tries to achieve high efficiency in testing with its
+self-learning algorithm and automated Test case generation
+methodology, wherein a single test scenario is converted to multiple
+test scenarios. Any automated testing tool is effective only when it
+can create the right values, the right sequence and also determine
+the expected output more often than not.
+
+
+
+SparkIT generates
+Test cases from various sources like the project’s XML file. Using
+Natural Language Processing, SparkIT scans through the EA diagram or
+Sequence diagram of a project or a component and creates Test block
+with Test case sequence based on the dependencies of one Test case
+with another.
+
+
+
+Supports
+	multiple platforms
+
+
+
+
+
+The
+test suite framework deployed inside the "Device Under Test”
+is portable and scalable to multiple platforms. The generator plug
+concept using scripts ensure that a new platform could be supported
+within a short span of time. The test suite natively supports Linux
+platforms and are tested for components in Telematics and Gen3 based
+platforms. Support for other platforms can be extended. The framework
+of the tool ensures that no or minimal handwritten code is needed for
+test cases execution. 
+
+
+
+
+
+	Supports
+	multiple IPC
+
+
+
+
+
+Multiple
+IPC mechanisms are supported using code generators which provides the
+glue layer to connect the proxy code to the Test Suite Framework.
+Support for DBUS and ASF IPC mechanisms are natively available within
+the Test Suite. Future IPC mechanisms shall be incorporated in the
+tool as and when they are identified. Code generators of existing IPC
+mechanisms are incorporated and reused in the test suite.
+
+
+
+
+	MULTI-USER
+	Support
+
+
+
+
+
+SparkIT
+supports multi-user requests. Based on the availability of the target
+and service request queue, SparkIT delivers the specified service,
+respectively.
+
+
+
+
+	Remote
+	Access
+
+
+
+
+
+SparkIT
+can be accessed remotely using SparkIT android app. Users can request
+to run their already configured tests.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+It
+provides:
+
+
+
+SparkIT
+offers a wide range of features to make the testing process
+effortless.
+
+
+
+
+	SparkIT
+	creates test cases and sequences on its own using the below
+	mentioned methods
+
+
+
+
+
+
+	Sequence
+	diagrams of components/projects using Optical character recognition
+
+
+	
+
+
+	Interface
+	XML files
+
+
+	
+
+
+	Existing
+	Fail case scenarios
+
+
+	
+
+
+	Scenarios
+	from similar projects which fall under same platform (clustering)
+
+
+
+
+
+
+	SparkIT
+	simulates and varies system parameters (CPU load, memory) during
+	testing to get an understanding of the behavior of test cases under
+	various environmental factors
+
+
+	
+
+
+	SparkIT
+	can connect to any target remotely over the cloud and run the tests.
+	
+	
+
+
+	
+
+
+	The
+	Framework includes frequently failed test cases, recurrence of test
+	case failures, test setup where a failure frequently occurs, latency
+	and timing associated with a test case along with many more
+	parameters for failure analysis.
+
+
+	
+
+
+	Tests
+	can be triggered at various levels of project hierarchy (project,
+	component, API)
+
+
+	
+
+
+	Multiple
+	users can simultaneously run tests on different targets.
+
+
+	
+
+
+	Android
+	application for test status.
+
+
+	
+
+
+	A
+	reporting wizard to easily know the status and results of the tests
+	executed
+
+
+	
+
+
+	A
+	complete “Build to test” automation package for the project
+	team, provided they employ SparkIT in continuous integration and
+	review.
+
+
+	
+
+
+	Probability
+	based validation modal from various sources for test output(s)
+
+
+
+
+
+
+	Supervised
+	learning
+
+
+	
+
+
+	Drools
+	or custom formula
+
+
+	
+
+
+	Platform
+	approach to validation
+
+
+
+
+
+
+	REST-API
+	to support calls from external tools , third party plugins and
+	scripts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Input
+	output validation method using rich HTML5 UI 
+	
+
+
+	
+
+
+	Automated
+	validation / review for individual commits /tags, if deployed in
+	tools like Gerrit.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Workflow:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Working
+with the Intelligence Engine
+
+A
+computer program is said to learn from experience E with respect to
+some task T and some performance measure P, if its performance on T,
+as measured by P, improves with experience E.” -- Tom Mitchell,
+Carnegie Mellon University
+
+
+
+For
+example, if you want your program to predict, for example, traffic
+patterns at a busy intersection (task T), you can run it through a
+machine learning algorithm with data about past traffic patterns
+(experience E) and, if it has successfully “learned”, it will
+then do better at predicting future traffic patterns (performance
+measure P).
+
+
+
+What
+is learning?
+
+
+
+It
+is a continuous process of feeding trained/ untrained data sets to
+the AI Engine for it to analyze and understand the underlying
+functions of the datasets so that, overtime the engine is capable
+enough to predict the function of any data set that may or may not be
+similar to the training dataset and that is why training the AI
+engine is very important. 
+
+
+
+
+In
+the initial phases, the engine is merely nothing as it doesn’t have
+the sufficient information to do its work. Over the period of time,
+we feed information to the engine and give feedback on all the
+predictions of the engine. By giving feedback, we are correcting the
+engine and making it smarter.
+
+
+
+All
+of the feeding information and correcting its predictions makes it
+possible for the engine to predict the outcomes, considering every
+single information it has on the function and all the corrections it
+has received be the users.
+
+
+
+ How
+to validate the output of a generated test cases? (Supervised
+Learning) 
+
+
+
+
+Like
+said earlier, SparkIT cannot predict the outcomes with 100% accuracy.
+It needs learning. 
+
+
+
+
+For
+every Testcase, there are certain input parameters and output
+parameters. Initially for every prediction it makes, it requests the
+user to validate its prediction so as to correct itself. 
+
+
+
+
+Under
+the Reports
+tab in UI, all the Test cases that require validation for input
+output pairs (<ip,op>). Press Generated
+inputs, Users
+will find all the data sets. Users should press ‘yes’ if they
+think that the prediction is correct and ‘no’ otherwise. 
+
+
+
+Probability
+of success determination? 
+
+(Un-Supervised Learning) 
+
+
+
+
+To
+determine the success or failure of a Testcase, SparkIT needs to
+validate the result expected by the user. To increase its prediction
+accuracies, SparkIT compares the result obtained from the target with
+result of the same Testcase from various sources like, evaluating the
+custom formula or user given result or user given result for the same
+Testcase in another Testblock or component.
+
+
+
+SparkIT
+uses weighted average to find the confidence of success. After every
+successful prediction, SparkIT updates its prediction accuracy. If
+incase the user finds the prediction wrong, SparkIT corrects itself
+and reduces its accuracy.  
+
+
+
+
+
+
+
+
+
+
+
+Natural
+Language Processing:
+
+
+As
+mentioned above, the project requires Enterprise architecture
+diagrams analysis for creating test blocks. 
+
+
+
+Sequence
+Diagram
+depicts the order in which interactions between objects take place. 
+
+
+
+As
+per the requirement, sequence of the interaction is needed. I want
+to: 
+
+
+
+
+
+	Extract
+	these interactions (text and symbols) from the provided system
+	documents.
+
+
+	
+
+
+	Analyse
+	the text present in the file.
+
+
+	
+
+
+	Understand
+	the orientation of the interaction(arrow orientation)
+
+
+	
+
+
+	Put
+	these analysis in the required format.
+
+
+
+
+
+
+
+
+
+
+
+
+
+The
+first step required is to convert all image extensions into pdf. This
+has been achieved so far. The next step is to understand the arrow
+orientation and text analysis of complex diagrams of real-time
+systems. 
+
+
+
+
+
+
+
+
+
+
+
+Work
+done:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
