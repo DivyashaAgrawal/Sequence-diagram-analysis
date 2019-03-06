@@ -11,10 +11,7 @@ try:
 except ImportError:
 	from io import StringIO
 
-<<<<<<< HEAD
-=======
 #Import downloaded libraries
->>>>>>> fdbaf4ba313a9176bc6e8cea4938433b74038b07
 import cv2
 import numpy as np
 from pprint import pprint
