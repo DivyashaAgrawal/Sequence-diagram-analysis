@@ -7,7 +7,7 @@ import os
 import sys
 import collections
 try:
-	from StringIO import StringIO  # TODO: Switch to future
+	from StringIO import StringIO
 except ImportError:
 	from io import StringIO
 
@@ -73,6 +73,7 @@ class MyParser:
 		#list of coordinates and texts
 		txt_coordinates=device1.rows 
 		
+
 		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))#Sorted according to font type
 		comments=[]
 		#Extracting Comments
@@ -82,20 +83,23 @@ class MyParser:
 				break
 			else:
 				pp=0
+		
 		rest=[]# Array for text with coordinates except comments
 		rest1=[]# Array for text without coordinates except comments
-		
+		comments1=[]#List of comments with coordinates
 		for i in range(len(forcomments)):
 			if(i>=pp):
 				comments.append(forcomments[i][4])
+				comments1.append(forcomments[i])
 			else:
 				rest.append(forcomments[i])
 				rest1.append(forcomments[i][4])
-
 		
+		#Removing spaces
+		for i in comments:
+			i=i.replace(" ","")
 		# Extracting components
 		comp=[]
-
 		f=0
 		p=0
 		for y in range(len(rest)):
@@ -108,6 +112,7 @@ class MyParser:
 		
 		#Extracting functions
 		functions=[s for s in rest1 if "(" in s]
+		
 		#For the alternatives
 		alt=[t for t in rest1 if "alt" in t]
 		#For the interactions
@@ -125,7 +130,7 @@ class MyParser:
 		
 		#read the components_boxes
 		temp_comp = "sample_images/components"
-		pick_comp = extract(image,temp_comp,0.95)
+		pick_comp = extract(image,temp_comp,0.97)# TODO: change the threshold according to diagram
 		
 		#read the self arrow
 		slf= "sample_images/self_arrow"
@@ -137,64 +142,60 @@ class MyParser:
 
 		#read the left_to_right arrow
 		lft_rght = "sample_images/left_arrow"
-		pick = extract(image,lft_rght,0.9)	
+		pick_lft_rght = extract(image,lft_rght,0.9)	
 	
-		pick_lft_rght=[]
-				
-		for i in range(len(pick)):
-			f=1
-			for j in range(len(pick_self)):#Seperating right_left arrow from self_arrow
-				if (pick[i][0]>pick_self[j][0] and pick[i][2]<pick_self[j][2] and pick[i][3]>pick_self[j][3]):#The arrow which has greater value from x1(pick_self[0]) and lesser value that x2(pick_self[2])
-					f=0
-					break
-			if(f == 1):
-				pick_lft_rght.append(pick[i])
-		pprint(pick_lft_rght)
+
 		#read the boxes
 		template = "sample_images/small_boxes"
 		pick_box = extract(image,template,0.95)
 		
 
-		for (startX, startY, endX, endY) in pick_rght_lft:#for right
-				orient[startY] ='left to right'
-		
-		for (startX, startY, endX, endY) in pick_lft_rght: #for left
-				orient[startY] ='right to left'
-
-		for (startX, startY, endX, endY) in pick_self:#for self
-				orient[startY] ='self'
-		
+	
 		#Reversing the lists to get correct index
 		pick_box[:] = pick_box[::-1]
+		pick_box = sorted(pick_box,key=lambda x:(x[1],x[0]))
+		pick_box1=[]
+		pick_lft_rght1=[]
+
+
+		if(functions[0]=="S tart P airing()"):
+			for i in range(len(pick_box)):
+				if(i>1):
+					pick_box1.append(pick_box[i])
+			del functions[0]
+			for i in range(len(pick_lft_rght)):
+				if(i!=0 ):
+					pick_lft_rght1.append(pick_lft_rght[i])
+			
+		else:
+			for i in range(len(pick_box)):
+				pick_box1.append(pick_box[i])
+			
+			for i in range(len(pick_lft_rght)):
+				pick_lft_rght1.append(pick_lft_rght[i])
+
+
 		pick_comp[:] = pick_comp[::-1]
 		pick_comp = sorted(pick_comp,key=lambda x:(x[0]))#Sorted components coordinates
-		
-		#Get the directions of the arrows and map it to the functions extracted
-		del orient['key']
-		
-		od = collections.OrderedDict(sorted(orient.items()))
-		d2=[]
-		for k, v in od.items(): 
-			d2.append(v)
 		#List of pairs of boxes(starting and ending points)
 		i=1
 		boxes=[]
-		while(i<(len(pick_box))):
-			if(pick_box[i-1][1]-pick_box[i][1]>=-100):
-				pair=[[pick_box[i-1][0],pick_box[i-1][1],pick_box[i-1][2],pick_box[i-1][3]],[pick_box[i][0],pick_box[i][1],pick_box[i][2],pick_box[i][3]]]
+		while(i<(len(pick_box1))):
+			if(pick_box1[i-1][1]-pick_box1[i][1]>=-100):
+				pair=[[pick_box1[i-1][0],pick_box1[i-1][1],pick_box1[i-1][2],pick_box1[i-1][3]],[pick_box1[i][0],pick_box1[i][1],pick_box1[i][2],pick_box1[i][3]]]
 				boxes.append(pair)
 				i=i+2
 			else:
-				single=[[pick_box[i-1][0],pick_box[i-1][1],pick_box[i-1][2],pick_box[i-1][3]],[]]
+				single=[[pick_box1[i-1][0],pick_box1[i-1][1],pick_box1[i-1][2],pick_box1[i-1][3]],[]]
 				boxes.append(single)
 				i=i+1
-		if(i==len(pick_box)):
-			single=[[pick_box[i-1][0],pick_box[i-1][1],pick_box[i-1][2],pick_box[i-1][3]],[]]
+		if(i==len(pick_box1)):
+			single=[[pick_box1[i-1][0],pick_box1[i-1][1],pick_box1[i-1][2],pick_box1[i-1][3]],[]]
 			boxes.append(single)
 		
 		#Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
 		real=[]
-		for i in pick_box:
+		for i in pick_box1:
 			real.append(tuple(i))
 		
 		#Create dictionary of boxes and components(indexwise)
@@ -218,17 +219,57 @@ class MyParser:
 					boxes[i][1]=components[q]+1
 			
 		
+		
+				
+		for (startX, startY, endX, endY) in pick_rght_lft:#for right
+				orient[startY] ='left to right'
+		
+		for (startX, startY, endX, endY) in pick_lft_rght1: #for left
+				orient[startY] ='right to left'
+
+		for (startX, startY, endX, endY) in pick_self:#for self
+				orient[startY] ='self'
+		
+		
+		
+		#Get the directions of the arrows and map it to the functions extracted
+		del orient['key']
+		
+		dv=[]
+		od = collections.OrderedDict(sorted(orient.items()))
+		#Removing the extra arrows of right_left//different from self_arrows
+		for k,v in od.items():
+			dv.append(v)
+		
+		for i in range(len(dv)):
+			if(i!=len(dv) and dv[i-1]=="self" and dv[i]=="right to left"):
+				dv[i]=""
+		
+		dvv=[]
+		for i in dv:
+			if(i!=""):
+				dvv.append(i)
+		odd={'key':'value'}
+
+		for i in range(len(dvv)):
+			odd[i+1]=dvv[i]
+
+		del odd['key']
+		
+		
+
 		#Dictionary of coordinates of arrows and pair of starting and ending boxes
-		cor_box=dict(zip(od,boxes))
+		cor_box=dict(zip(odd,boxes))
 		
 		#Map the orientatoin and components
-		ds = [orient, cor_box]
+		ds = [odd, cor_box]
 		
 		d = {}
-		for k in orient:
+		for k in odd:
     			d[k] = tuple(d[k] for d in ds)
-        	
+
 		#correction of the orientation
+		l=list()
 		final=[]
 		d1=dict()
 		ll=list()
@@ -260,7 +301,7 @@ class MyParser:
 					l[1][1]=t
 			final.append(l[1])
 			
-				
+		
 		
 		#Making a list of components for arrows
 		#Naming the arrows
@@ -272,24 +313,44 @@ class MyParser:
 				final[i][1]='NULL'
 			else:
 				final[i][1]=comp[final[i][1]-1]
-
-	
+		
 		
 		#Insert document in collection
 		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
+
 		c=[]
+		cc=[]
 		start='('
 		end=')'
 		count=1
-		for i in functions:
-			ip=(i.split(start))[1].split(end)[0]
-			name=i.split('(')[0]
-			method={"method_name ": name, "param" :{"Sequence": count, "input" : ip, "output" : "none" }}
+		out=":"
+		for i in range(len(functions)):
+			ip=(functions[i].split(start))[1].split(end)[0]
+			if(":" in functions[i]):
+				ii=functions[i][::-1]
+				op=ii.split(out)[0]
+				op=op[::-1]
+			else:
+				op=""
+			name=functions[i].split('(')[0]
+			method={"method_name ": name, "Src ": final[i][0],"Dest ": final[i][1],"param" :{"Sequence": count, "input" : ip, "output" : op }}
 			c.append(method)
 			count+=1
+		count1=1
+		for j in comments:
+			method1={"Number-" : count1,"comment " : j}
+			count1+=1
+			cc.append(method1)
 		
-		contentDict={"IPPC": {"EA_analytics" : c }}
-		doc = InsertIntoCollection(collobj,contentDict)
+		
+		cl=[{"Sequence_Block " : c},{ "Comments " : cc}]
+		
+		
+
+		contentDict={"IPPC": {"EA_analytics" : {"Sequence_Block " : c, "Comments " : cc}}}
+		doc=InsertIntoCollection(collobj,contentDict)
+
+		
 		#Save the text in a text file
 		f= open('EA_miner.txt','w')
 		f.write('The Components are:')
@@ -303,6 +364,10 @@ class MyParser:
 			f.write(str(i+1) + ') '+ functions[i] + ' is going from ' + final[i][0] + ' to ' + final[i][1])
 			f.write("\n")
 		f.write('\n\n')
+		f.write("\n COMMENTS \n")
+		for i in comments:
+			f.write("- " + i)
+			f.write("\n")
 		
 		f.close()
 		
@@ -311,4 +376,3 @@ class MyParser:
 if __name__ == '__main__':
 	p = MyParser(sys.argv[1])
 	print ('\n'.join(p.records))
-
