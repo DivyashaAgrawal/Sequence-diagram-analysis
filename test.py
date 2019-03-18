@@ -11,6 +11,9 @@ try:
 except ImportError:
 	from io import StringIO
 
+
+INT_MAX = sys.maxsize 
+
 #Import downloaded libraries
 import cv2
 import numpy as np
@@ -49,29 +52,16 @@ class MyParser:
 		# Spacing parameters for parsing
 		laparams = LAParams() 
 		codec = 'utf-8'
-		# Original text converter which coverts pdf into text by reading small chuncks
-		# and merging the ones close to each other.
-		device = TextConverter(rsrcmgr, retstr,codec = codec,laparams = laparams) 
-		interpreter = PDFPageInterpreter(rsrcmgr, device)
-		for page in PDFPage.create_pages(document):
-			interpreter.process_page(page)
-		self.records = [] # The text list
-		lines = retstr.getvalue().splitlines()
-		
-		
 		# get coordnates of bounding boxes bounding the texts.
 		# Create a PDF device object
-		device1 = PDFPageDetailed(rsrcmgr, laparams=laparams) 
+		device = PDFPageDetailed(rsrcmgr, laparams=laparams) 
 		# Create a PDF interpreter object
-		interpreter1 = PDFPageInterpreter(rsrcmgr, device1)  
+		interpreter = PDFPageInterpreter(rsrcmgr, device)  
 
 		for page in PDFPage.create_pages(document): 
-    			interpreter1.process_page(page)
-				# receive the LTPage object for this page
-    			#device1.get_result()
-
+    			interpreter.process_page(page)
 		#list of coordinates and texts
-		txt_coordinates=device1.rows 
+		txt_coordinates=device.rows 
 		
 
 		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))#Sorted according to font type
@@ -95,9 +85,12 @@ class MyParser:
 				rest.append(forcomments[i])
 				rest1.append(forcomments[i][4])
 		
-		#Removing spaces
-		for i in comments:
-			i=i.replace(" ","")
+		if(len(rest)==0):
+			rest=comments1.copy()
+			rest1=comments.copy()
+			del comments1[:]
+			del comments[:]
+		
 		# Extracting components
 		comp=[]
 		f=0
@@ -110,14 +103,75 @@ class MyParser:
 				p=rest[y+1][4]
 		comp.append(p)
 		
-		#Extracting functions
-		functions=[s for s in rest1 if "(" in s]
+		forcomments = sorted(txt_coordinates)
 		
+		#Cleaned functions names
+		
+		c = []
+		for i in range(len(rest)):
+			if(i+1!=len(rest)):
+				c.append(int(rest[i][1] - rest[i+1][1]))
+		minimum = INT_MAX
+	
+		for i in c:
+			if(i!=0 and i<=minimum) :
+				minimum=i
+		threshold=11
+		
+		for i in range(len(c)):
+			if(c[i] == minimum and c[i] < threshold):
+				
+				rest1[i]= rest1[i]+rest1[i+1]
+				rest1[i+1] = ''
+		
+		#Cleaned Comments box
+		comments1=sorted(comments1,key=lambda x:(x[0] , -x[1]))
+		c = []
+		for i in range(len(comments1)):
+			if(i+1!=len(comments1)):
+				c.append(int(abs(comments1[i][1] - comments1[i+1][1])))
+		minimum=INT_MAX
+		for i in c:
+			if(i!=0 and i<=minimum):
+				minimum=i
+
+		
+		comments2=[]
+		st=""
+		for i in range(len(comments1)):
+			if((i+1)!=len(comments1) and comments1[i][0]==comments1[i+1][0] and  (abs(comments1[i][1]-comments1[i+1][1])) < 27):
+				st += comments1[i][4]
+				
+			elif(((i+1)!=len(comments1) and comments1[i][0]==comments1[i+1][0] and  (abs(comments1[i][1]-comments1[i+1][1])) >= 27) or 
+((i+1)!=len(comments1) and comments1[i][0]!=comments1[i+1][0] and  (abs(comments1[i][1]-comments1[i+1][1])) >= 27) or 
+(i+1==len(comments1))):
+				st += comments1[i][4]
+				
+				comments2.append(st)
+				st="" 
+			
+				
+		
+		#Extracting functions
+		functions = [s for s in rest1 if "(" in s]
+		pprint(functions)
 		#For the alternatives
 		alt=[t for t in rest1 if "alt" in t]
 		#For the interactions
 		inter=[t for t in rest1 if "int" in t]
+
+
+		#Removing spaces
+		for i in range(len(comp)):
+			comp[i]=comp[i].replace(' ','')
+		for i in range(len(functions)):
+			functions[i]=functions[i].replace(' ','')
+		for i in range(len(alt)):
+			alt[i]=alt[i].replace(' ','')
+		for i in range(len(inter)):
+			inter[i]=inter[i].replace(' ','')
 		
+
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages:
@@ -130,7 +184,7 @@ class MyParser:
 		
 		#read the components_boxes
 		temp_comp = "sample_images/components"
-		pick_comp = extract(image,temp_comp,0.97)# TODO: change the threshold according to diagram
+		pick_comp = extract(image,temp_comp,0.96) # TODO: change the threshold according to diagram
 		
 		#read the self arrow
 		slf= "sample_images/self_arrow"
@@ -158,7 +212,8 @@ class MyParser:
 		pick_lft_rght1=[]
 
 
-		if(functions[0]=="S tart P airing()"):
+		if(functions[0]=="StartPairing()"):
+			
 			for i in range(len(pick_box)):
 				if(i>1):
 					pick_box1.append(pick_box[i])
@@ -176,7 +231,9 @@ class MyParser:
 
 
 		pick_comp[:] = pick_comp[::-1]
+		
 		pick_comp = sorted(pick_comp,key=lambda x:(x[0]))#Sorted components coordinates
+		
 		#List of pairs of boxes(starting and ending points)
 		i=1
 		boxes=[]
@@ -192,7 +249,10 @@ class MyParser:
 		if(i==len(pick_box1)):
 			single=[[pick_box1[i-1][0],pick_box1[i-1][1],pick_box1[i-1][2],pick_box1[i-1][3]],[]]
 			boxes.append(single)
-		
+
+
+		#TODO: Search in the database from the method name. Search for tags @kind,@enumvalue
+
 		#Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
 		real=[]
 		for i in pick_box1:
@@ -337,7 +397,7 @@ class MyParser:
 			c.append(method)
 			count+=1
 		count1=1
-		for j in comments:
+		for j in comments2:
 			method1={"Number-" : count1,"comment " : j}
 			count1+=1
 			cc.append(method1)
@@ -365,7 +425,7 @@ class MyParser:
 			f.write("\n")
 		f.write('\n\n')
 		f.write("\n COMMENTS \n")
-		for i in comments:
+		for i in comments2:
 			f.write("- " + i)
 			f.write("\n")
 		
@@ -375,4 +435,4 @@ class MyParser:
 		 
 if __name__ == '__main__':
 	p = MyParser(sys.argv[1])
-	print ('\n'.join(p.records))
+	
