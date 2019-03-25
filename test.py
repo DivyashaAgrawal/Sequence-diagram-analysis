@@ -154,7 +154,7 @@ class MyParser:
 		
 		#Extracting functions
 		functions = [s for s in rest1 if "(" in s]
-		pprint(functions)
+		
 		#For the alternatives
 		alt=[t for t in rest1 if "alt" in t]
 		#For the interactions
@@ -174,11 +174,13 @@ class MyParser:
 
 		#Convert pdf to png
 		pages = convert_from_path(pdf, 500)
-		for page in pages:
+		for page in pages: 
+
 			page.save('input.png', 'PNG')
 		image = cv2.imread('input.png')
 
 		#dictionary for orientation of the arrows
+
 		orient={'key':'value'}
 
 		
