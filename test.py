@@ -104,7 +104,7 @@ class MyParser:
 		comp.append(p)
 		
 		forcomments = sorted(txt_coordinates)
-		
+		pprint(rest)
 		#Cleaned functions names
 		
 		c = []
