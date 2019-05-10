@@ -5,6 +5,7 @@
 
 import os
 import sys
+import glob
 import collections
 try:
 	from StringIO import StringIO
@@ -38,7 +39,7 @@ class MyParser:
 
 	def __init__(self, pdf):
 		
-		###read the pdf and read the text
+		# read the pdf and read the text
 		parser = PDFParser(open(pdf, 'rb')) # Parse
 		# Create the document model from the file
 		document = PDFDocument(parser) 
@@ -62,7 +63,7 @@ class MyParser:
     			interpreter.process_page(page)
 		#list of coordinates and texts
 		txt_coordinates=device.rows 
-		
+		print(txt_coordinates)
 
 		forcomments = sorted(txt_coordinates,key=lambda x:(x[5],-x[1]))#Sorted according to font type
 		comments=[]
@@ -104,7 +105,7 @@ class MyParser:
 		comp.append(p)
 		
 		forcomments = sorted(txt_coordinates)
-		pprint(rest)
+		
 		#Cleaned functions names
 		
 		c = []
@@ -112,34 +113,27 @@ class MyParser:
 			if(i+1!=len(rest)):
 				c.append(int(rest[i][1] - rest[i+1][1]))
 		minimum = INT_MAX
-	
+		
 		for i in c:
-			if(i!=0 and i<=minimum) :
+			if(i!=0 and i<=minimum and i>=9) :
 				minimum=i
-		threshold=11
+		
+		
 		
 		for i in range(len(c)):
-			if(c[i] == minimum and c[i] < threshold):
+			if((c[i] == minimum and c[i] < 11) and c[i]>=8):
 				
 				rest1[i]= rest1[i]+rest1[i+1]
 				rest1[i+1] = ''
 		
-		#Cleaned Comments box
-		comments1=sorted(comments1,key=lambda x:(x[0] , -x[1]))
-		c = []
-		for i in range(len(comments1)):
-			if(i+1!=len(comments1)):
-				c.append(int(abs(comments1[i][1] - comments1[i+1][1])))
-		minimum=INT_MAX
-		for i in c:
-			if(i!=0 and i<=minimum):
-				minimum=i
 
+		# Cleaned Comments box
+		comments1=sorted(comments1,key=lambda x:(x[0] , -x[1]))
 		
 		comments2=[]
 		st=""
 		for i in range(len(comments1)):
-			if((i+1)!=len(comments1) and comments1[i][0]==comments1[i+1][0] and  (abs(comments1[i][1]-comments1[i+1][1])) < 27):
+			if((i+1)!=len(comments1) and comments1[i][0]==comments1[i+1][0] and  (abs(comments1[i][1]-comments1[i+1][1])) < 27):# Customized according to diagrams. Pixel range could be different
 				st += comments1[i][4]
 				
 			elif(((i+1)!=len(comments1) and comments1[i][0]==comments1[i+1][0] and  (abs(comments1[i][1]-comments1[i+1][1])) >= 27) or 
@@ -149,19 +143,18 @@ class MyParser:
 				
 				comments2.append(st)
 				st="" 
-			
-				
+					
 		
-		#Extracting functions
+		# Extracting functions
 		functions = [s for s in rest1 if "(" in s]
 		
-		#For the alternatives
+		# For the alternatives
 		alt=[t for t in rest1 if "alt" in t]
-		#For the interactions
+		# For the interactions
 		inter=[t for t in rest1 if "int" in t]
+		
 
-
-		#Removing spaces
+		# Removing spaces
 		for i in range(len(comp)):
 			comp[i]=comp[i].replace(' ','')
 		for i in range(len(functions)):
@@ -172,42 +165,45 @@ class MyParser:
 			inter[i]=inter[i].replace(' ','')
 		
 
-		#Convert pdf to png
+		# Convert pdf to png
 		pages = convert_from_path(pdf, 500)
 		for page in pages: 
 
 			page.save('input.png', 'PNG')
 		image = cv2.imread('input.png')
 
-		#dictionary for orientation of the arrows
+		# dictionary for orientation of the arrows
 
 		orient={'key':'value'}
 
-		
-		#read the components_boxes
+		# Change in threshold according to image
+		pdf_no = pdf.rsplit('.')[0].split('/')[2]
+		 
+		# read the components_boxes
 		temp_comp = "sample_images/components"
-		pick_comp = extract(image,temp_comp,0.96) # TODO: change the threshold according to diagram
+		pick_comp = extract(image,temp_comp,0.94) 
+		if(pdf_no == '4'):
+			pick_comp = np.delete(pick_comp, 0, 0)
 		
-		#read the self arrow
+		# read the self arrow
 		slf= "sample_images/self_arrow"
 		pick_self = extract(image,slf,0.9)
 
-		#read the right_to_left arrow
+		# read the right_to_left arrow
 		rght_lft = "sample_images/right_arrow"
 		pick_rght_lft = extract(image,rght_lft,0.9)
 
-		#read the left_to_right arrow
+		# read the left_to_right arrow
 		lft_rght = "sample_images/left_arrow"
 		pick_lft_rght = extract(image,lft_rght,0.9)	
 	
 
-		#read the boxes
+		# read the boxes
 		template = "sample_images/small_boxes"
 		pick_box = extract(image,template,0.95)
 		
-
 	
-		#Reversing the lists to get correct index
+		# Reversing the lists to get correct index
 		pick_box[:] = pick_box[::-1]
 		pick_box = sorted(pick_box,key=lambda x:(x[1],x[0]))
 		pick_box1=[]
@@ -234,9 +230,9 @@ class MyParser:
 
 		pick_comp[:] = pick_comp[::-1]
 		
-		pick_comp = sorted(pick_comp,key=lambda x:(x[0]))#Sorted components coordinates
+		pick_comp = sorted(pick_comp,key=lambda x:(x[0]))# Sorted components coordinates
 		
-		#List of pairs of boxes(starting and ending points)
+		# List of pairs of boxes(starting and ending points)
 		i=1
 		boxes=[]
 		while(i<(len(pick_box1))):
@@ -253,14 +249,13 @@ class MyParser:
 			boxes.append(single)
 
 
-		#TODO: Search in the database from the method name. Search for tags @kind,@enumvalue
 
-		#Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
+		# Create the dictionary of components and small boxes we need a list of coordinates of boxes in tuple
 		real=[]
 		for i in pick_box1:
 			real.append(tuple(i))
 		
-		#Create dictionary of boxes and components(indexwise)
+		# Create dictionary of boxes and components(indexwise)
 		components=dict()
 		for j in range(len(real)):
 			for i in range(len(pick_comp)):
@@ -269,8 +264,8 @@ class MyParser:
 					components[real[j]]=i
 					break
 					
-		
-		#Create the dictionary of components and arrows 
+		pprint(components)
+		# Create the dictionary of components and arrows 
 		for i in range(len(boxes)):
 			r=tuple(boxes[i][0])
 			if r in components:	
@@ -281,8 +276,7 @@ class MyParser:
 					boxes[i][1]=components[q]+1
 			
 		
-		
-				
+		pprint(boxes)		
 		for (startX, startY, endX, endY) in pick_rght_lft:#for right
 				orient[startY] ='left to right'
 		
@@ -293,13 +287,12 @@ class MyParser:
 				orient[startY] ='self'
 		
 		
-		
-		#Get the directions of the arrows and map it to the functions extracted
+		# Get the directions of the arrows and map it to the functions extracted
 		del orient['key']
 		
 		dv=[]
 		od = collections.OrderedDict(sorted(orient.items()))
-		#Removing the extra arrows of right_left//different from self_arrows
+		# Removing the extra arrows of right_left//different from self_arrows
 		for k,v in od.items():
 			dv.append(v)
 		
@@ -318,19 +311,18 @@ class MyParser:
 
 		del odd['key']
 		
-		
 
-		#Dictionary of coordinates of arrows and pair of starting and ending boxes
+		# Dictionary of coordinates of arrows and pair of starting and ending boxes
 		cor_box=dict(zip(odd,boxes))
-		
-		#Map the orientatoin and components
+		pprint(cor_box)
+		# Map the orientatoin and components
 		ds = [odd, cor_box]
 		
 		d = {}
 		for k in odd:
     			d[k] = tuple(d[k] for d in ds)
 
-		#correction of the orientation
+		# Correction of the orientation
 		l=list()
 		final=[]
 		d1=dict()
@@ -362,11 +354,10 @@ class MyParser:
 					l[1][0]=l[1][1]
 					l[1][1]=t
 			final.append(l[1])
-			
+				
 		
-		
-		#Making a list of components for arrows
-		#Naming the arrows
+		# Making a list of components for arrows
+		# Naming the arrows
 		
 		for i in range(len(final)):
 			
@@ -376,9 +367,9 @@ class MyParser:
 			else:
 				final[i][1]=comp[final[i][1]-1]
 		
-		
-		#Insert document in collection
-		collobj=CreateCollection(CreateDB("admin"),"TOPAS")
+
+		# Insert document in collection
+		collobj=CreateCollection(CreateDB("admin"),"EA_PROJECT")
 
 		c=[]
 		cc=[]
@@ -407,34 +398,13 @@ class MyParser:
 		
 		cl=[{"Sequence_Block " : c},{ "Comments " : cc}]
 		
-		
-
-		contentDict={"IPPC": {"EA_analytics" : {"Sequence_Block " : c, "Comments " : cc}}}
+		contentDict={"Project_name": {"EA_analytics" : {"Component " : c}, "Comments " : cc}}
 		doc=InsertIntoCollection(collobj,contentDict)
-
-		
-		#Save the text in a text file
-		f= open('EA_miner.txt','w')
-		f.write('The Components are:')
-		f.write('\n')
-		for m in range(len(comp)):
-			f.write(str(m+1) + ') ' + comp[m])
-			f.write('\n\n')
-		f.write('The methods are: ')
-		f.write('\n\n')
-		for i in range(len(functions)):
-			f.write(str(i+1) + ') '+ functions[i] + ' is going from ' + final[i][0] + ' to ' + final[i][1])
-			f.write("\n")
-		f.write('\n\n')
-		f.write("\n COMMENTS \n")
-		for i in comments2:
-			f.write("- " + i)
-			f.write("\n")
-		
-		f.close()
-		
 
 		 
 if __name__ == '__main__':
-	p = MyParser(sys.argv[1])
 	
+	files= glob.glob('sample_images/pdfs' + '/*')
+	for myfile in files:
+		print("Sequence diagram of " + myfile.rsplit('.')[0].split('/')[2] + "th pdf")
+		p = MyParser(myfile)
